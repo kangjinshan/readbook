@@ -1,0 +1,357 @@
+.reader {
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.35), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 22%),
+    var(--reader-bg);
+  color: var(--reader-text);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+}
+
+.loadingScreen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #fff8dc;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.topBarLeft {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.ghostButton:global(.ant-btn) {
+  height: 44px;
+  border: 1px solid color-mix(in srgb, var(--reader-secondary) 28%, transparent) !important;
+  background: var(--reader-panel) !important;
+  color: var(--reader-text) !important;
+  backdrop-filter: blur(10px);
+}
+
+.ghostButton:global(.ant-btn):hover,
+.ghostButton:global(.ant-btn):focus {
+  border-color: var(--reader-progress) !important;
+  color: var(--reader-text) !important;
+}
+
+.bookMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.bookTitle {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.chapterTitle {
+  color: var(--reader-secondary);
+  font-size: 14px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--reader-panel);
+  border: 1px solid color-mix(in srgb, var(--reader-secondary) 26%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.segmentButton,
+.segmentActive {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--reader-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.segmentActive {
+  background: var(--reader-progress);
+  color: #ffffff;
+  box-shadow: 0 10px 24px -18px var(--reader-progress);
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.turnZoneLeft,
+.turnZoneRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14%;
+  border: none;
+  background: transparent;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.turnZoneLeft {
+  left: 0;
+}
+
+.turnZoneRight {
+  right: 0;
+}
+
+.turnZoneLeft:disabled,
+.turnZoneRight:disabled {
+  cursor: default;
+}
+
+.pageChrome {
+  position: relative;
+  width: min(1180px, 100%);
+  min-height: 72vh;
+  padding: 28px 48px 32px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 18%),
+    var(--reader-bg);
+  box-shadow:
+    0 30px 80px -48px var(--reader-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  overflow: hidden;
+}
+
+.pageHeader,
+.pageFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--reader-secondary);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.pageBodyForward,
+.pageBodyBackward {
+  min-height: calc(72vh - 124px);
+  padding: 36px 8%;
+  animation-duration: 300ms;
+  animation-timing-function: ease;
+  animation-fill-mode: both;
+}
+
+.pageBodyForward {
+  animation-name: turnForward;
+}
+
+.pageBodyBackward {
+  animation-name: turnBackward;
+}
+
+.content {
+  font-size: var(--reader-font-size);
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--reader-text);
+}
+
+.webviewViewport {
+  min-height: calc(72vh - 124px);
+  display: flex;
+  align-items: stretch;
+}
+
+.webviewFrame {
+  width: 100%;
+  min-height: calc(72vh - 124px);
+  border: none;
+  border-radius: 24px;
+  background: transparent;
+}
+
+.chapterHeading {
+  margin: 0 0 1.2em;
+  text-align: center;
+  font-size: calc(var(--reader-font-size) * 1.08);
+  line-height: 1.45;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+}
+
+.sectionKicker {
+  margin: 0 0 0.7em;
+  text-align: center;
+  color: var(--reader-secondary);
+  font-size: calc(var(--reader-font-size) * 0.62);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.paragraph {
+  margin: 0 0 1.15em;
+  white-space: pre-wrap;
+  text-indent: 2em;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.imageBlock {
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.pageImage {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 18px 46px -36px var(--reader-shadow);
+}
+
+.pageLoading {
+  min-height: 52vh;
+  display: grid;
+  place-items: center;
+}
+
+.progressTrack {
+  margin-top: 20px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--reader-secondary) 20%, transparent);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--reader-progress);
+  transition: width 180ms ease;
+}
+
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.hint {
+  color: var(--reader-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+@keyframes turnForward {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes turnBackward {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .reader {
+    padding: 16px;
+  }
+
+  .topBar,
+  .bottomBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls {
+    justify-content: flex-start;
+  }
+
+  .pageChrome {
+    padding: 20px 20px 24px;
+    border-radius: 20px;
+    min-height: 76vh;
+  }
+
+  .pageHeader,
+  .pageFooter {
+    font-size: 16px;
+  }
+
+  .pageBodyForward,
+  .pageBodyBackward {
+    min-height: calc(76vh - 96px);
+    padding: 28px 4%;
+  }
+}
+
+@media (max-width: 640px) {
+  .topBarLeft {
+    flex-direction: column;
+  }
+
+  .segment {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .segmentButton,
+  .segmentActive {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+  }
+
+  .content {
+    font-size: calc(var(--reader-font-size) * 0.58);
+  }
+
+  .hint {
+    font-size: 12px;
+  }
+}

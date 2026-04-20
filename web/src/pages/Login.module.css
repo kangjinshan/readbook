@@ -1,0 +1,65 @@
+/* Material Design Login Page */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+}
+
+.card {
+  width: 400px;
+  box-shadow: var(--md-elevation-4);
+  border-radius: var(--md-radius-xl) !important;
+  overflow: hidden;
+}
+
+.card :global(.ant-card-body) {
+  padding: var(--md-spacing-xl) !important;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--md-spacing-xl);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--md-primary);
+  letter-spacing: 0.5px;
+}
+
+.header p {
+  margin: var(--md-spacing-sm) 0 0;
+  color: var(--md-on-surface-variant);
+  font-size: 14px;
+}
+
+.header :global(.anticon) {
+  font-size: 48px;
+  color: var(--md-primary);
+  margin-bottom: var(--md-spacing-md);
+}
+
+/* Login Form Styles */
+.card :global(.ant-form-item) {
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.card :global(.ant-input) {
+  height: 48px;
+  font-size: 16px;
+}
+
+.card :global(.ant-btn) {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.card :global(.ant-form-item-explain-error) {
+  font-size: 12px;
+  margin-top: var(--md-spacing-xs);
+}

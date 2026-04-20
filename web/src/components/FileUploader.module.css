@@ -1,0 +1,58 @@
+/* Material Design File Uploader */
+.uploader {
+  width: 100%;
+}
+
+.uploader :global(.ant-upload-drag) {
+  border-radius: var(--md-radius-lg) !important;
+  border: 2px dashed var(--md-outline) !important;
+  background: var(--md-surface) !important;
+  transition: all var(--md-transition-normal) !important;
+}
+
+.uploader :global(.ant-upload-drag:hover) {
+  border-color: var(--md-primary) !important;
+  background: rgba(25, 118, 210, 0.04) !important;
+}
+
+.uploader :global(.ant-upload-drag-icon) {
+  color: var(--md-primary) !important;
+}
+
+.fileInfo {
+  padding: var(--md-spacing-md);
+  background: rgba(76, 175, 80, 0.08);
+  border-radius: var(--md-radius-md);
+  border-left: 4px solid var(--md-secondary);
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-spacing-md);
+  margin-top: var(--md-spacing-md);
+}
+
+.fileName {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.uploadBtn {
+  margin-top: var(--md-spacing-md);
+}
+
+.uploadBtn :global(.ant-btn) {
+  width: 100%;
+  height: 48px;
+  font-size: 14px;
+}
+
+.errorText {
+  margin-top: 4px;
+  color: var(--md-error);
+  font-size: 12px;
+}

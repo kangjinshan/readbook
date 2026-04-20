@@ -1,0 +1,101 @@
+/* Material Design Bookmarks Page */
+.bookmarks {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.filterCard {
+  margin-bottom: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.filterCard :global(.ant-card-body) {
+  padding: var(--md-spacing-md) !important;
+}
+
+.filterCard :global(.ant-select) {
+  min-width: 150px;
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 0;
+  color: var(--md-on-surface-variant);
+}
+
+.empty :global(.anticon) {
+  font-size: 48px;
+  color: var(--md-outline);
+  margin-bottom: var(--md-spacing-md);
+}
+
+.empty :global(.ant-empty-description) {
+  color: var(--md-on-surface-variant);
+}
+
+/* Bookmark List Items */
+.bookmarks :global(.ant-list-item) {
+  padding: var(--md-spacing-md);
+  border-radius: var(--md-radius-md);
+  transition: background var(--md-transition-fast);
+  margin-bottom: var(--md-spacing-sm) !important;
+  border: 1px solid var(--md-outline) !important;
+}
+
+.bookmarks :global(.ant-list-item:hover) {
+  background: rgba(25, 118, 210, 0.04);
+  border-color: var(--md-primary-light) !important;
+}
+
+.bookmarks :global(.ant-list-item-meta-title) {
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.bookmarks :global(.ant-list-item-meta-description) {
+  color: var(--md-on-surface-variant);
+  font-size: 13px;
+}
+
+.bookmarks :global(.ant-list-item-action) {
+  margin-left: var(--md-spacing-md);
+}
+
+.bookmarks :global(.ant-list-item-action li) {
+  padding: 0 var(--md-spacing-xs);
+}
+
+/* Bookmark Card */
+.bookmarks :global(.ant-card) {
+  border-radius: var(--md-radius-lg) !important;
+}
+
+/* Bookmark Tag */
+.bookmarks :global(.ant-tag) {
+  border-radius: var(--md-radius-lg) !important;
+  padding: 2px 10px;
+}
+
+/* Quote Highlight */
+.bookmarks :global(.ant-typography blockquote) {
+  background: rgba(25, 118, 210, 0.08);
+  border-left: 4px solid var(--md-primary);
+  padding: var(--md-spacing-md);
+  border-radius: 0 var(--md-radius-md) var(--md-radius-md) 0;
+  margin: var(--md-spacing-sm) 0;
+  font-style: italic;
+  color: var(--md-on-surface);
+}

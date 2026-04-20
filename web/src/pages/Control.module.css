@@ -1,0 +1,133 @@
+/* Material Design Control Page */
+.control {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.section {
+  margin-bottom: var(--md-spacing-md);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--md-spacing-md) var(--md-spacing-lg);
+  align-items: start;
+}
+
+.fieldGrid :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.fieldGrid :global(.ant-input-number),
+.fieldGrid :global(.ant-picker) {
+  width: 100%;
+}
+
+.section h5 {
+  margin: 0 0 var(--md-spacing-md) 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  padding-bottom: var(--md-spacing-sm);
+  border-bottom: 2px solid var(--md-primary);
+  display: inline-block;
+}
+
+.section :global(.ant-card) {
+  border-radius: var(--md-radius-lg) !important;
+  margin-bottom: var(--md-spacing-md);
+}
+
+.hint {
+  color: var(--md-on-surface-variant);
+  font-size: 12px;
+  margin-top: var(--md-spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--md-spacing-xs);
+}
+
+.hint :global(.anticon) {
+  color: var(--md-primary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--md-spacing-md);
+  flex-wrap: wrap;
+}
+
+.actions :global(.ant-btn) {
+  min-width: 120px;
+  height: 44px;
+  border-radius: var(--md-radius-lg) !important;
+  font-weight: 500;
+}
+
+.actions :global(.ant-btn-primary) {
+  background: var(--md-primary) !important;
+  border-color: var(--md-primary) !important;
+}
+
+.actions :global(.ant-btn-primary:hover) {
+  background: var(--md-primary-dark) !important;
+  border-color: var(--md-primary-dark) !important;
+  box-shadow: var(--md-elevation-2) !important;
+}
+
+.actions :global(.ant-btn-dangerous) {
+  background: var(--md-error) !important;
+  border-color: var(--md-error) !important;
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 0;
+  color: var(--md-on-surface-variant);
+  background: var(--md-background);
+  border-radius: var(--md-radius-lg);
+}
+
+.empty :global(.anticon) {
+  font-size: 48px;
+  color: var(--md-outline);
+  margin-bottom: var(--md-spacing-md);
+}
+
+/* Control Cards */
+.control :global(.ant-descriptions) {
+  background: var(--md-background);
+  border-radius: var(--md-radius-md);
+  padding: var(--md-spacing-md);
+}
+
+.control :global(.ant-descriptions-item-label) {
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--md-spacing-md);
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+}

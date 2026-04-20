@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 基础颜色 -->
+    <color name="primary">#5B9BD5</color>
+    <color name="primary_dark">#4A7BB8</color>
+    <color name="accent">#FFB74D</color>
+
+    <!-- 护眼黄主题 -->
+    <color name="theme_yellow_background">#FFF8DC</color>
+    <color name="theme_yellow_text">#2A2A2A</color>
+    <color name="theme_yellow_secondary">#888888</color>
+
+    <!-- 白天主题 -->
+    <color name="theme_white_background">#FAFAFA</color>
+    <color name="theme_white_text">#1A1A1A</color>
+    <color name="theme_white_secondary">#777777</color>
+
+    <!-- 夜间主题 -->
+    <color name="theme_dark_background">#222222</color>
+    <color name="theme_dark_text">#E0E0E0</color>
+    <color name="theme_dark_secondary">#AAAAAA</color>
+
+    <!-- 通用颜色 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#888888</color>
+    <color name="progress_bar">#5B9BD5</color>
+    <color name="progress_track">#1F2A2A2A</color>
+    <color name="progress_label">#A35B00</color>
+    <color name="focus_border">#FFB74D</color>
+    <color name="book_card_bg">#FFF3D9</color>
+    <color name="book_card_bg_focused">#FFF7E6</color>
+    <color name="book_cover_bg">#FFFDF8</color>
+    <color name="book_cover_stroke">#20A5794A</color>
+    <color name="book_card_stroke">#14A5794A</color>
+    <color name="reader_timer_border">#6BFF78</color>
+    <color name="reader_timer_text">#6BFF78</color>
+
+    <!-- Launcher icon -->
+    <color name="ic_launcher_background">#5B9BD5</color>
+</resources>

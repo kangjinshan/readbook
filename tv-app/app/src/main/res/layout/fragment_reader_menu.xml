@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#E0000000"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <!-- 标签页 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/tabSettings"
+            style="@style/MenuButtonStyle"
+            android:text="@string/tab_settings" />
+
+        <Button
+            android:id="@+id/tabBookmarks"
+            style="@style/MenuButtonStyle"
+            android:layout_marginStart="8dp"
+            android:text="@string/tab_bookmarks" />
+
+        <Button
+            android:id="@+id/tabChapters"
+            style="@style/MenuButtonStyle"
+            android:layout_marginStart="8dp"
+            android:text="@string/tab_chapters" />
+    </LinearLayout>
+
+    <!-- 设置面板 -->
+    <LinearLayout
+        android:id="@+id/settingsPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="vertical">
+
+        <!-- 字号设置 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:text="字号"
+                android:textColor="@color/white"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/fontSizeSmall"
+                style="@style/SettingButtonStyle"
+                android:text="@string/font_size_small" />
+
+            <Button
+                android:id="@+id/fontSizeMedium"
+                style="@style/SettingButtonStyle"
+                android:layout_marginStart="8dp"
+                android:text="@string/font_size_medium" />
+
+            <Button
+                android:id="@+id/fontSizeLarge"
+                style="@style/SettingButtonStyle"
+                android:layout_marginStart="8dp"
+                android:text="@string/font_size_large" />
+        </LinearLayout>
+
+        <!-- 主题设置 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:text="主题"
+                android:textColor="@color/white"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/themeYellow"
+                style="@style/SettingButtonStyle"
+                android:text="@string/theme_yellow" />
+
+            <Button
+                android:id="@+id/themeWhite"
+                style="@style/SettingButtonStyle"
+                android:layout_marginStart="8dp"
+                android:text="@string/theme_white" />
+
+            <Button
+                android:id="@+id/themeDark"
+                style="@style/SettingButtonStyle"
+                android:layout_marginStart="8dp"
+                android:text="@string/theme_dark" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 书签面板 -->
+    <ScrollView
+        android:id="@+id/bookmarksPanel"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/bookmarksList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <!-- 章节面板 -->
+    <ScrollView
+        android:id="@+id/chaptersPanel"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/chaptersList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+</LinearLayout>

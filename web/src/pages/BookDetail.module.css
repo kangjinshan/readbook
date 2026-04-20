@@ -1,0 +1,155 @@
+/* Material Design Book Detail Page */
+.detail {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.header :global(.ant-btn) {
+  border-radius: var(--md-radius-md) !important;
+}
+
+.info {
+  display: flex;
+  gap: var(--md-spacing-lg);
+}
+
+.cover {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-spacing-md);
+}
+
+.cover :global(.ant-image) {
+  border-radius: var(--md-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--md-elevation-2);
+}
+
+.coverPlaceholder {
+  width: 200px;
+  height: 280px;
+  background: linear-gradient(135deg, var(--md-primary-light) 0%, var(--md-primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: var(--md-radius-lg);
+  box-shadow: var(--md-elevation-2);
+}
+
+.coverPlaceholder :global(.anticon) {
+  font-size: 64px;
+  opacity: 0.8;
+}
+
+.coverActions {
+  display: flex;
+  justify-content: center;
+}
+
+.coverInput {
+  display: none;
+}
+
+.meta {
+  flex: 1;
+}
+
+.meta h2 {
+  margin: 0 0 var(--md-spacing-sm) 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.meta p {
+  color: var(--md-on-surface-variant);
+  margin-bottom: var(--md-spacing-sm);
+}
+
+.section {
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.section h5 {
+  margin: 0 0 var(--md-spacing-md) 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  padding-bottom: var(--md-spacing-sm);
+  border-bottom: 2px solid var(--md-primary);
+  display: inline-block;
+}
+
+.assignList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--md-spacing-md);
+  margin-bottom: var(--md-spacing-md);
+}
+
+.assignList :global(.ant-tag) {
+  padding: 4px 12px;
+  font-size: 13px;
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md-spacing-md);
+}
+
+.formItem {
+  display: flex;
+  align-items: center;
+  gap: var(--md-spacing-md);
+}
+
+.formItem label {
+  width: 80px;
+  flex-shrink: 0;
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+}
+
+.formItem :global(.ant-input-number) {
+  border-radius: var(--md-radius-md) !important;
+}
+
+.previewContent {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--md-spacing-md);
+  background: var(--md-background);
+  border-radius: var(--md-radius-md);
+  font-family: 'Roboto', monospace;
+  font-size: 14px;
+}
+
+/* Action Buttons */
+.detail :global(.ant-btn-primary) {
+  background: var(--md-primary) !important;
+  border-color: var(--md-primary) !important;
+}
+
+.detail :global(.ant-btn-dangerous) {
+  background: var(--md-error) !important;
+  border-color: var(--md-error) !important;
+}

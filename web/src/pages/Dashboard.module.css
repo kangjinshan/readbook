@@ -1,0 +1,96 @@
+/* Material Design Dashboard Page */
+.dashboard {
+  padding: 0;
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 0;
+}
+
+.empty :global(.ant-empty-description) {
+  color: var(--md-on-surface-variant);
+}
+
+.welcome {
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.welcome h4 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.welcome p {
+  color: var(--md-on-surface-variant);
+  margin-top: var(--md-spacing-xs);
+}
+
+.statusCard {
+  margin-top: var(--md-spacing-lg);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.readingStatus {
+  padding: var(--md-spacing-md);
+  background: rgba(76, 175, 80, 0.08);
+  border-radius: var(--md-radius-md);
+  border-left: 4px solid var(--md-secondary);
+}
+
+.statusIcon {
+  margin-right: var(--md-spacing-sm);
+  color: var(--md-primary);
+  font-size: 18px;
+}
+
+.notReading {
+  text-align: center;
+  padding: var(--md-spacing-xl);
+  color: var(--md-on-surface-variant);
+  background: var(--md-background);
+  border-radius: var(--md-radius-md);
+}
+
+.chartCard {
+  margin-top: var(--md-spacing-lg);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.chartCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.summaryCard {
+  margin-top: var(--md-spacing-lg);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.mostRead {
+  padding: var(--md-spacing-md);
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: var(--md-radius-md);
+  border-left: 4px solid var(--md-primary);
+}
+
+.mostRead h5 {
+  margin: 0 0 var(--md-spacing-sm) 0;
+  font-weight: 500;
+  color: var(--md-primary);
+}
+
+/* Stats Grid */
+.dashboard :global(.ant-statistic-title) {
+  color: var(--md-on-surface-variant);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard :global(.ant-statistic-content-value) {
+  color: var(--md-primary);
+  font-weight: 500;
+}

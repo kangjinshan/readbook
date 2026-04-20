@@ -1,0 +1,96 @@
+/* Material Design Books Page */
+.books {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.searchCard {
+  margin-bottom: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+  background: var(--md-surface) !important;
+}
+
+.searchBar {
+  display: flex;
+  gap: var(--md-spacing-md);
+}
+
+.searchBar :global(.ant-input-affix-wrapper) {
+  height: 48px;
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.searchBar :global(.ant-select) {
+  min-width: 150px;
+}
+
+.searchBar :global(.ant-btn) {
+  height: 48px;
+  min-width: 100px;
+}
+
+.listCard {
+  min-height: 400px;
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.bookGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--md-spacing-lg);
+  padding: var(--md-spacing-md);
+}
+
+.pagination {
+  margin-top: var(--md-spacing-lg);
+  text-align: center;
+}
+
+.pagination :global(.ant-pagination-item) {
+  border-radius: var(--md-radius-md) !important;
+  min-width: 40px;
+  height: 40px;
+  line-height: 38px;
+}
+
+.pagination :global(.ant-pagination-item-active) {
+  background: var(--md-primary) !important;
+  border-color: var(--md-primary) !important;
+}
+
+.pagination :global(.ant-pagination-item-active a) {
+  color: white !important;
+}
+
+/* Empty State */
+.books :global(.ant-empty) {
+  padding: var(--md-spacing-xl) 0;
+}
+
+.books :global(.ant-empty-description) {
+  color: var(--md-on-surface-variant);
+}
+
+/* Upload Button Style */
+.header :global(.ant-btn-primary) {
+  background: var(--md-secondary) !important;
+  border-color: var(--md-secondary) !important;
+}
+
+.header :global(.ant-btn-primary:hover) {
+  background: var(--md-secondary-dark) !important;
+  border-color: var(--md-secondary-dark) !important;
+}

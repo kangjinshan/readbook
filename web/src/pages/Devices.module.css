@@ -1,0 +1,69 @@
+/* Material Design Devices Page */
+.devices {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.helpCard {
+  background: rgba(25, 118, 210, 0.04) !important;
+  border: 1px solid rgba(25, 118, 210, 0.12) !important;
+  border-radius: var(--md-radius-lg) !important;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.helpCard :global(.ant-card-head) {
+  border-bottom: 1px solid rgba(25, 118, 210, 0.12) !important;
+}
+
+.helpCard :global(.ant-card-head-title) {
+  color: var(--md-primary);
+  font-weight: 500;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.steps li {
+  margin: var(--md-spacing-sm) 0;
+  color: var(--md-on-surface);
+  line-height: 1.6;
+}
+
+.steps li::marker {
+  color: var(--md-primary);
+}
+
+/* Device Table */
+.devices :global(.ant-table) {
+  border-radius: var(--md-radius-lg) !important;
+  overflow: hidden;
+}
+
+.devices :global(.ant-table-thead > tr > th) {
+  background: var(--md-primary) !important;
+  color: white !important;
+}
+
+/* Status Indicators */
+.devices :global(.ant-badge-status-success) {
+  background: var(--md-secondary) !important;
+}
+
+.devices :global(.ant-badge-status-error) {
+  background: var(--md-error) !important;
+}

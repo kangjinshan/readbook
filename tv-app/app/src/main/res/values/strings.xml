@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">儿童护眼阅读器</string>
+    <string name="bind_title">设备绑定</string>
+    <string name="bind_code_hint">请在家长后台输入绑定码</string>
+    <string name="shelf_title">书架</string>
+    <string name="empty_shelf">暂无书籍</string>
+    <string name="loading">加载中...</string>
+    <string name="page_info">第 %1$d / %2$d 页</string>
+    <string name="add_bookmark">添加书签</string>
+    <string name="bookmark_added">书签已添加</string>
+    <string name="bookmark_exists">当前页已有书签</string>
+    <string name="exit_confirm">确定要退出吗？</string>
+    <string name="font_size_small">小号</string>
+    <string name="font_size_medium">中号</string>
+    <string name="font_size_large">大号</string>
+    <string name="theme_yellow">护眼黄</string>
+    <string name="theme_white">白天</string>
+    <string name="theme_dark">夜间</string>
+    <string name="tab_settings">设置</string>
+    <string name="tab_bookmarks">书签</string>
+    <string name="tab_chapters">目录</string>
+    <string name="no_bookmarks">暂无书签</string>
+    <string name="delete_bookmark">删除</string>
+    <string name="bookmark_page_label">第 %1$d 页  %2$s</string>
+    <string name="menu_font_size">字号</string>
+    <string name="menu_theme">主题</string>
+    <string name="menu_brightness">亮度</string>
+    <string name="brightness_normal">100%</string>
+    <string name="brightness_dim_15">85%</string>
+    <string name="brightness_dim_30">70%</string>
+    <string name="brightness_dim_45">55%</string>
+    <string name="reader_menu_help">[菜单键] 打开/关闭菜单  [长按OK] 添加书签</string>
+    <string name="reader_remaining_time">剩余 %1$s</string>
+    <string name="lock_title">休息时间</string>
+    <string name="lock_message">连续阅读已超过限制，请休息</string>
+    <string name="shelf_total_pages">共 %1$d 页</string>
+    <string name="shelf_current_page">读到第 %1$d 页</string>
+    <string name="shelf_progress_percent">%1$d%%</string>
+    <string name="shelf_not_started">未开始阅读</string>
+    <string name="shelf_exit_hint">再按一次返回键退出应用</string>
+</resources>

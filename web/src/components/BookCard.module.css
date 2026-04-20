@@ -1,0 +1,108 @@
+/* Material Design Book Card */
+.card {
+  width: 160px;
+  cursor: pointer;
+  transition: transform var(--md-transition-normal), box-shadow var(--md-transition-normal);
+  border-radius: var(--md-radius-lg) !important;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--md-elevation-4) !important;
+}
+
+.cover {
+  position: relative;
+  height: 200px;
+  background: var(--md-outline);
+  overflow: hidden;
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--md-transition-slow);
+}
+
+.card:hover .coverImage {
+  transform: scale(1.05);
+}
+
+.coverPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--md-primary) 0%, var(--md-primary-dark) 100%);
+}
+
+.coverIcon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.formatTag {
+  position: absolute;
+  top: var(--md-spacing-sm);
+  left: var(--md-spacing-sm);
+}
+
+.assignedTag {
+  position: absolute;
+  top: var(--md-spacing-sm);
+  right: var(--md-spacing-sm);
+}
+
+.content {
+  padding: var(--md-spacing-sm) 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author {
+  margin: var(--md-spacing-xs) 0;
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pages {
+  margin: 0;
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+}
+
+.downloadLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--md-spacing-sm);
+  font-size: 12px;
+  color: var(--md-primary);
+  text-decoration: none;
+}
+
+.downloadLink:hover {
+  color: var(--md-primary-dark);
+}
+
+.progress {
+  margin-top: var(--md-spacing-sm);
+}
+
+.progress :global(.ant-progress-bg) {
+  background: var(--md-secondary) !important;
+}

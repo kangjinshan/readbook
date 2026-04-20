@@ -1,0 +1,132 @@
+/* Material Design Stats Page */
+.stats {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--md-spacing-md);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.filterCard {
+  margin-bottom: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.filterCard :global(.ant-card-body) {
+  padding: var(--md-spacing-md) !important;
+}
+
+.filterCard :global(.ant-select) {
+  min-width: 150px;
+}
+
+.chartCard {
+  margin-top: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.chartCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.favoriteCard {
+  margin-top: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.favorite {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--md-spacing-md);
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(66, 165, 245, 0.08) 100%);
+  border-radius: var(--md-radius-md);
+  border-left: 4px solid var(--md-primary);
+}
+
+.favorite :global(.ant-statistic-title) {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--md-on-surface-variant);
+}
+
+.favorite :global(.ant-statistic-content-value) {
+  font-size: 32px;
+  color: var(--md-primary);
+  font-weight: 500;
+}
+
+.favoriteTime {
+  color: var(--md-primary);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.favoriteTime :global(.anticon) {
+  margin-right: var(--md-spacing-xs);
+}
+
+.historyCard {
+  margin-top: var(--md-spacing-md);
+  border-radius: var(--md-radius-lg) !important;
+}
+
+.historyCard :global(.ant-timeline-item-head) {
+  background: var(--md-primary) !important;
+}
+
+.historyCard :global(.ant-timeline-item-tail) {
+  border-left-color: var(--md-outline) !important;
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 0;
+  color: var(--md-on-surface-variant);
+}
+
+.empty :global(.anticon) {
+  font-size: 48px;
+  color: var(--md-outline);
+  margin-bottom: var(--md-spacing-md);
+}
+
+/* Chart Container */
+.chartCard :global(.recharts-cartesian-grid-horizontal line),
+.chartCard :global(.recharts-cartesian-grid-vertical line) {
+  stroke: var(--md-outline);
+}
+
+.chartCard :global(.recharts-text) {
+  fill: var(--md-on-surface-variant);
+}
+
+/* Stats Summary */
+.stats :global(.ant-statistic) {
+  text-align: center;
+}
+
+.stats :global(.ant-statistic-title) {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats :global(.ant-statistic-content-value) {
+  color: var(--md-primary);
+}

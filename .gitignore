@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+*.js
+*.js.map
+*.d.ts
+!src/**/*.js
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Internal / private project docs
+ISSUES.md
+codex-issues.md
+PROJECT_AUDIT_*.md
+agents.md
+**/agents.md
+design-pre.md
+design-backup.md
+docs/superpowers/
+docs/校验报告.md
+docs/api-integration.test.ts
+docs/package.json
+docs/package-lock.json
+docs/vitest.config.ts
+server/test-epub.mjs
+
+# OS
+.DS_Store
+._*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database (sensitive data)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# TV App build
+tv-app/app/build/
+tv-app/.gradle/
+tv-app/build/
+tv-app/local.properties
+*.apk
+*.aab
+
+# Storage files (uploaded content)
+server/storage/originals/
+server/storage/parsed/
+server/storage/covers/
+
+# Temporary files
+tmp/
+*.cookies
+*.tmp
+*.temp
+*.tar.gz
+*.zip
+
+# Local git worktrees
+.worktrees/

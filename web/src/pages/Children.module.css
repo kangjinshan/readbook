@@ -1,0 +1,56 @@
+/* Material Design Children Page */
+.children {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--md-spacing-lg);
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.header :global(.ant-btn) {
+  border-radius: var(--md-radius-lg) !important;
+  height: 40px;
+  padding: 0 var(--md-spacing-lg);
+}
+
+/* Child Card Styles */
+.children :global(.ant-card) {
+  border-radius: var(--md-radius-lg) !important;
+  transition: all var(--md-transition-normal);
+}
+
+.children :global(.ant-card:hover) {
+  box-shadow: var(--md-elevation-3) !important;
+}
+
+.children :global(.ant-card-meta-title) {
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.children :global(.ant-card-meta-description) {
+  color: var(--md-on-surface-variant);
+}
+
+.children :global(.ant-avatar) {
+  background: var(--md-primary) !important;
+}
+
+/* Add Child Modal */
+.children :global(.ant-modal-content) {
+  border-radius: var(--md-radius-xl) !important;
+}
+
+.children :global(.ant-form-item-label > label) {
+  font-weight: 500;
+}

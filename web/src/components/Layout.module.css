@@ -1,0 +1,110 @@
+/* Material Design Layout */
+.layout {
+  min-height: 100vh;
+  background: var(--md-background);
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: var(--md-background);
+}
+
+.loadingContainer :global(.ant-spin-dot-item) {
+  background-color: var(--md-primary) !important;
+}
+
+.sider {
+  background: var(--md-surface) !important;
+  border-right: none;
+  box-shadow: var(--md-elevation-2);
+}
+
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--md-primary);
+  border-bottom: 1px solid var(--md-outline);
+  letter-spacing: 0.5px;
+}
+
+.header {
+  background: var(--md-surface) !important;
+  padding: 0 var(--md-spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--md-elevation-1);
+  z-index: 1;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.childSelector {
+  color: var(--md-on-surface);
+  padding: var(--md-spacing-sm) var(--md-spacing-md);
+  border-radius: var(--md-radius-md);
+  transition: all var(--md-transition-fast);
+}
+
+.childSelector:hover {
+  color: var(--md-primary);
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.userInfo {
+  cursor: pointer;
+  padding: 0 var(--md-spacing-md);
+  border-radius: var(--md-radius-md);
+  transition: background var(--md-transition-fast);
+}
+
+.userInfo:hover {
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.content {
+  margin: var(--md-spacing-lg);
+  padding: var(--md-spacing-lg);
+  background: var(--md-surface);
+  border-radius: var(--md-radius-lg);
+  min-height: calc(100vh - 112px);
+  box-shadow: var(--md-elevation-1);
+}
+
+/* Sidebar Menu Styles */
+.sider :global(.ant-menu) {
+  background: transparent !important;
+}
+
+.sider :global(.ant-menu-item) {
+  margin: 4px 8px !important;
+  border-radius: var(--md-radius-md) !important;
+  font-weight: 500;
+}
+
+.sider :global(.ant-menu-item-selected) {
+  background: rgba(25, 118, 210, 0.12) !important;
+}
+
+.sider :global(.ant-menu-item-selected)::after {
+  display: none;
+}
+
+.sider :global(.ant-menu-item::after) {
+  display: none;
+}
