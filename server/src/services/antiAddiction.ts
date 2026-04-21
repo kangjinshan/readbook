@@ -56,6 +56,28 @@ export class AntiAddictionService {
     return Number(match[1]) * 60 + Number(match[2]);
   }
 
+  private getSessionRecordedDurationSeconds(
+    sessionStart: Date,
+    sessionEnd: Date,
+    durationSeconds: unknown
+  ): number {
+    const safeDurationSeconds = Math.max(0, Number(durationSeconds ?? 0));
+    return clampRecordedDurationSeconds(sessionStart, sessionEnd, safeDurationSeconds);
+  }
+
+  private getSessionEffectiveEndTime(
+    sessionStart: Date,
+    sessionEnd: Date,
+    durationSeconds: unknown
+  ): Date {
+    const safeDurationSeconds = this.getSessionRecordedDurationSeconds(
+      sessionStart,
+      sessionEnd,
+      durationSeconds
+    );
+    return new Date(Math.min(sessionEnd.getTime(), sessionStart.getTime() + safeDurationSeconds * 1000));
+  }
+
   /**
    * 获取防沉迷策略
    */
@@ -302,17 +324,14 @@ export class AntiAddictionService {
       }
 
       const endTime = parseStoredUtcDateTime(session.end_time) ?? now;
-      const recordedDurationSeconds = clampRecordedDurationSeconds(
+      const effectiveEndTime = this.getSessionEffectiveEndTime(
         startTime,
         endTime,
-        Number(
-        session.duration_seconds || Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-        )
+        session.duration_seconds
       );
-      const attributedSeconds = this.estimateRecordedSecondsInRange(
+      const attributedSeconds = getOverlapSeconds(
         startTime,
-        endTime,
-        recordedDurationSeconds,
+        effectiveEndTime,
         todayRange.start,
         todayRange.end
       );
@@ -407,29 +426,12 @@ export class AntiAddictionService {
     }
 
     const todayRange = getBeijingDayUtcRange(now);
-    const overlapSeconds = getOverlapSeconds(startTime, now, todayRange.start, todayRange.end);
-    return Math.min(Math.max(0, recordedDurationSeconds), overlapSeconds);
-  }
-
-  private estimateRecordedSecondsInRange(
-    sessionStart: Date,
-    sessionEnd: Date,
-    recordedDurationSeconds: number,
-    rangeStart: Date,
-    rangeEnd: Date
-  ): number {
-    const totalWallSeconds = Math.max(0, Math.floor((sessionEnd.getTime() - sessionStart.getTime()) / 1000));
-    if (recordedDurationSeconds <= 0 || totalWallSeconds <= 0) {
-      return 0;
-    }
-
-    const overlapSeconds = getOverlapSeconds(sessionStart, sessionEnd, rangeStart, rangeEnd);
-    if (overlapSeconds <= 0) {
-      return 0;
-    }
-
-    const ratio = Math.min(1, recordedDurationSeconds / totalWallSeconds);
-    return Math.min(recordedDurationSeconds, Math.floor(overlapSeconds * ratio));
+    const effectiveEndTime = this.getSessionEffectiveEndTime(
+      startTime,
+      now,
+      recordedDurationSeconds
+    );
+    return getOverlapSeconds(startTime, effectiveEndTime, todayRange.start, todayRange.end);
   }
 
   private getBooksReadCountForDate(childId: number, statDate: string): number {

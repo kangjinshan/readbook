@@ -54,6 +54,41 @@ function serializeChapterContentBlocks(
   });
 }
 
+function formatUtcDateTime(date: Date): string {
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function closeDanglingReadingSessions(childId: number, now: Date = new Date()): void {
+  const sessions = query(
+    `SELECT id, start_time, start_page, end_page, duration_seconds
+     FROM reading_sessions
+     WHERE child_id = ? AND end_time IS NULL`,
+    [childId]
+  );
+
+  sessions.forEach((session) => {
+    const startTime = parseStoredUtcDateTime(session.start_time);
+    const safeDurationSeconds = Math.max(0, Number(session.duration_seconds ?? 0));
+    let resolvedEndTime = now;
+
+    if (startTime) {
+      const clampedDurationSeconds = clampRecordedDurationSeconds(startTime, now, safeDurationSeconds);
+      resolvedEndTime = new Date(
+        Math.min(now.getTime(), startTime.getTime() + clampedDurationSeconds * 1000)
+      );
+    }
+
+    execute(
+      `UPDATE reading_sessions SET
+        end_time = ?,
+        duration_seconds = ?,
+        end_page = COALESCE(end_page, start_page)
+      WHERE id = ?`,
+      [formatUtcDateTime(resolvedEndTime), safeDurationSeconds, session.id]
+    );
+  });
+}
+
 /**
  * POST /api/tv/register
  * 电视设备首次注册
@@ -472,6 +507,8 @@ router.post('/session/start', deviceAuth, requireDeviceBound, asyncHandler(async
     'UPDATE devices SET last_online_at = CURRENT_TIMESTAMP WHERE id = ?',
     [deviceId]
   );
+
+  closeDanglingReadingSessions(childId);
 
   // 创建会话
   const result = execute(
