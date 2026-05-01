@@ -7,6 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import com.readbook.tv.data.api.ApiClient
 import com.readbook.tv.data.api.HeartbeatRequest
+import com.readbook.tv.data.api.SessionStartResponse
 import com.readbook.tv.data.model.ControlPolicy
 import com.readbook.tv.data.api.SessionStartRequest
 import com.readbook.tv.data.api.SessionEndRequest
@@ -202,16 +203,30 @@ class SyncService : Service() {
                     val data = response.data
 
                     if (!data.allowed) {
-                        readingControlCoordinator.handleSessionStartDenied(
-                            reason = data.reason,
-                            message = data.message
-                        )
+                        val lockDurationMinutes = data.lockDurationMinutes ?: 0
+                        if (data.reason == "continuous_limit_exceeded" && lockDurationMinutes > 0) {
+                            readingControlCoordinator.handleHeartbeatResult(
+                                shouldLock = true,
+                                reason = data.reason,
+                                message = data.message,
+                                lockDurationMinutes = lockDurationMinutes
+                            )
+                        } else {
+                            readingControlCoordinator.handleSessionStartDenied(
+                                reason = data.reason,
+                                message = data.message
+                            )
+                        }
                         _lockState.value = LockState.Locked(
                             reason = data.reason ?: "forbidden",
                             message = data.message ?: "当前不允许阅读",
-                            durationMinutes = 0
+                            durationMinutes = lockDurationMinutes
                         )
-                        broadcastLockState(data.reason ?: "forbidden", data.message ?: "当前不允许阅读", 0)
+                        broadcastLockState(
+                            data.reason ?: "forbidden",
+                            data.message ?: "当前不允许阅读",
+                            lockDurationMinutes * 60L
+                        )
                         endReadingSession()
                         return@launch
                     }
@@ -221,11 +236,11 @@ class SyncService : Service() {
                             ControlPolicy(
                                 dailyLimitMinutes = policy.dailyLimitMinutes,
                                 continuousLimitMinutes = policy.continuousLimitMinutes,
-                                restMinutes = preferenceManager.restMinutes,
-                                forbiddenStartTime = preferenceManager.forbiddenStartTime,
-                                forbiddenEndTime = preferenceManager.forbiddenEndTime,
-                                allowedFontSizes = preferenceManager.allowedFontSizes.toList(),
-                                allowedThemes = preferenceManager.allowedThemes.toList()
+                                restMinutes = policy.restMinutes,
+                                forbiddenStartTime = policy.forbiddenStartTime,
+                                forbiddenEndTime = policy.forbiddenEndTime,
+                                allowedFontSizes = policy.allowedFontSizes ?: preferenceManager.allowedFontSizes.toList(),
+                                allowedThemes = policy.allowedThemes ?: preferenceManager.allowedThemes.toList()
                             )
                         )
                         Log.i(
@@ -234,6 +249,10 @@ class SyncService : Service() {
                         )
                     }
                     preferenceManager.todayReadingSeconds = data.todayReadMinutes * 60L
+                    resolveServerContinuousSeconds(data)?.let { serverContinuousSeconds ->
+                        preferenceManager.continuousReadingSeconds =
+                            maxOf(preferenceManager.continuousReadingSeconds, serverContinuousSeconds)
+                    }
                     currentSessionId = data.sessionId
                     startHeartbeat()
                 }
@@ -338,6 +357,12 @@ class SyncService : Service() {
         currentBookId = 0
         currentPage = 1
         lastHeartbeatDurationSeconds = 0
+    }
+
+    private fun resolveServerContinuousSeconds(data: SessionStartResponse): Long? {
+        data.continuousReadSeconds?.takeIf { it > 0L }?.let { return it }
+        data.continuousReadMinutes?.takeIf { it > 0 }?.let { return it * 60L }
+        return null
     }
 
     // ==================== 绑定轮询 ====================

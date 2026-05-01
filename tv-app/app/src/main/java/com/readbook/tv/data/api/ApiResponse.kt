@@ -146,10 +146,16 @@ data class SessionStartResponse(
     val reason: String?,
     @SerializedName("message")
     val message: String?,
+    @SerializedName("lockDurationMinutes")
+    val lockDurationMinutes: Int?,
     @SerializedName("policy")
     val policy: PolicyData?,
     @SerializedName("todayReadMinutes")
-    val todayReadMinutes: Int
+    val todayReadMinutes: Int,
+    @SerializedName("continuousReadMinutes")
+    val continuousReadMinutes: Int?,
+    @SerializedName("continuousReadSeconds")
+    val continuousReadSeconds: Long?
 )
 
 /**

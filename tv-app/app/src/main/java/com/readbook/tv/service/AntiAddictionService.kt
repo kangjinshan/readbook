@@ -94,6 +94,8 @@ class AntiAddictionService : Service() {
         if (timerJob?.isActive == true) return
 
         resetDailyIfNeeded()
+        resetContinuousIfRested()
+        preferenceManager.lastReadingStoppedAtEpochMs = 0L
 
         if (applyGateStateIfLocked(readingControlCoordinator.currentState())) {
             return
@@ -106,6 +108,11 @@ class AntiAddictionService : Service() {
                 reason = "forbidden_time",
                 message = "当前为禁止阅读时段"
             )
+            return
+        }
+
+        updateRemainingTime()
+        if (checkLimits()) {
             return
         }
 
@@ -133,7 +140,9 @@ class AntiAddictionService : Service() {
                 updateRemainingTime()
 
                 // 检查限制
-                checkLimits()
+                if (checkLimits()) {
+                    break
+                }
             }
         }
     }
@@ -142,10 +151,7 @@ class AntiAddictionService : Service() {
         timerJob?.cancel()
         timerJob = null
         persistReadingCounters(force = true)
-
-        // 重置连续阅读计时
-        _continuousSeconds.value = 0
-        preferenceManager.continuousReadingSeconds = 0
+        preferenceManager.lastReadingStoppedAtEpochMs = System.currentTimeMillis()
     }
 
     private fun updateRemainingTime() {
@@ -156,7 +162,7 @@ class AntiAddictionService : Service() {
         _remainingContinuousMinutes.value = ((continuousLimitSeconds - _continuousSeconds.value) / 60).toInt().coerceAtLeast(0)
     }
 
-    private fun checkLimits() {
+    private fun checkLimits(): Boolean {
         // 检查每日限制
         val dailyLimitSeconds = preferenceManager.dailyLimitMinutes * 60L
         if (_todaySeconds.value >= dailyLimitSeconds) {
@@ -164,7 +170,7 @@ class AntiAddictionService : Service() {
                 reason = "daily_limit_exceeded",
                 message = "今日阅读时长已达上限"
             )
-            return
+            return true
         }
 
         // 检查连续阅读限制
@@ -177,7 +183,10 @@ class AntiAddictionService : Service() {
                 lockDurationMinutes = preferenceManager.restMinutes
             )
             lock(preferenceManager.restMinutes)
+            return true
         }
+
+        return false
     }
 
     // ==================== 锁屏功能 ====================
@@ -211,6 +220,7 @@ class AntiAddictionService : Service() {
         // 重置连续阅读计时
         _continuousSeconds.value = 0
         preferenceManager.continuousReadingSeconds = 0
+        preferenceManager.lastReadingStoppedAtEpochMs = 0L
 
         val nextState = readingControlCoordinator.recheck()
         if (applyGateStateIfLocked(nextState)) {
@@ -352,6 +362,7 @@ class AntiAddictionService : Service() {
             preferenceManager.todayDate = today
             preferenceManager.todayReadingSeconds = 0
             preferenceManager.continuousReadingSeconds = 0
+            preferenceManager.lastReadingStoppedAtEpochMs = 0L
             _todaySeconds.value = 0
             _continuousSeconds.value = 0
         } else {
@@ -370,10 +381,26 @@ class AntiAddictionService : Service() {
         preferenceManager.todayDate = today
         preferenceManager.todayReadingSeconds = 0
         preferenceManager.continuousReadingSeconds = 0
+        preferenceManager.lastReadingStoppedAtEpochMs = 0L
         _todaySeconds.value = 0
         _continuousSeconds.value = 0
         pendingPersistSeconds = 0
         updateRemainingTime()
+    }
+
+    private fun resetContinuousIfRested(nowMillis: Long = System.currentTimeMillis()) {
+        val stoppedAt = preferenceManager.lastReadingStoppedAtEpochMs
+        if (stoppedAt <= 0L || _continuousSeconds.value <= 0L) {
+            return
+        }
+
+        val restMillis = preferenceManager.restMinutes.coerceAtLeast(0) * 60_000L
+        if (nowMillis - stoppedAt >= restMillis) {
+            _continuousSeconds.value = 0L
+            preferenceManager.continuousReadingSeconds = 0L
+            pendingPersistSeconds = 0L
+            updateRemainingTime()
+        }
     }
 
     private fun getPolicy(): com.readbook.tv.data.model.ControlPolicy {

@@ -78,6 +78,102 @@ export class AntiAddictionService {
     return new Date(Math.min(sessionEnd.getTime(), sessionStart.getTime() + safeDurationSeconds * 1000));
   }
 
+  private getCurrentSessionEffectiveEndTime(
+    sessionStartTime: unknown,
+    recordedDurationSeconds: number,
+    now: Date
+  ): Date | null {
+    const startTime = parseStoredUtcDateTime(sessionStartTime);
+    if (!startTime) {
+      return null;
+    }
+
+    return this.getSessionEffectiveEndTime(startTime, now, recordedDurationSeconds);
+  }
+
+  private getRollingWindowReadingSeconds(
+    childId: number,
+    windowStart: Date,
+    windowEnd: Date,
+    excludeSessionId?: string,
+    now: Date = new Date()
+  ): number {
+    const sessions = query(
+      `SELECT id, start_time, end_time, duration_seconds
+       FROM reading_sessions
+       WHERE child_id = ?`,
+      [childId]
+    );
+
+    return sessions.reduce((sum, session) => {
+      if (excludeSessionId && String(session.id) === excludeSessionId) {
+        return sum;
+      }
+
+      const startTime = parseStoredUtcDateTime(session.start_time);
+      if (!startTime) {
+        return sum;
+      }
+
+      const endTime = parseStoredUtcDateTime(session.end_time) ?? now;
+      const effectiveEndTime = this.getSessionEffectiveEndTime(
+        startTime,
+        endTime,
+        session.duration_seconds
+      );
+
+      return sum + getOverlapSeconds(startTime, effectiveEndTime, windowStart, windowEnd);
+    }, 0);
+  }
+
+  private getCurrentSessionRollingWindowSeconds(
+    sessionStartTime: unknown,
+    recordedDurationSeconds: number,
+    windowStart: Date,
+    windowEnd: Date
+  ): number {
+    const startTime = parseStoredUtcDateTime(sessionStartTime);
+    if (!startTime) {
+      return Math.max(0, recordedDurationSeconds);
+    }
+
+    const effectiveEndTime = this.getCurrentSessionEffectiveEndTime(
+      sessionStartTime,
+      recordedDurationSeconds,
+      windowEnd
+    );
+    if (!effectiveEndTime) {
+      return 0;
+    }
+
+    return getOverlapSeconds(startTime, effectiveEndTime, windowStart, windowEnd);
+  }
+
+  private getRollingWindowStart(policy: ControlPolicy, now: Date): Date {
+    const windowMinutes = Math.max(
+      policy.continuousLimitMinutes,
+      policy.continuousLimitMinutes + policy.restMinutes
+    );
+    return new Date(now.getTime() - windowMinutes * 60 * 1000);
+  }
+
+  getRollingWindowReadingMinutes(
+    childId: number,
+    policy: ControlPolicy,
+    now: Date = new Date()
+  ): number {
+    return Math.floor(this.getRollingWindowReadingSecondsForPolicy(childId, policy, now) / 60);
+  }
+
+  getRollingWindowReadingSecondsForPolicy(
+    childId: number,
+    policy: ControlPolicy,
+    now: Date = new Date()
+  ): number {
+    const windowStart = this.getRollingWindowStart(policy, now);
+    return this.getRollingWindowReadingSeconds(childId, windowStart, now, undefined, now);
+  }
+
   /**
    * 获取防沉迷策略
    */
@@ -167,7 +263,12 @@ export class AntiAddictionService {
   /**
    * 检查是否可以开始阅读
    */
-  canStartReading(childId: number): { allowed: boolean; reason?: string; message?: string } {
+  canStartReading(childId: number): {
+    allowed: boolean;
+    reason?: string;
+    message?: string;
+    lockDurationMinutes?: number;
+  } {
     const policy = this.getPolicy(childId);
     if (!policy) {
       return { allowed: false, reason: 'no_policy', message: '未找到防沉迷策略' };
@@ -211,9 +312,34 @@ export class AntiAddictionService {
         remainingDailyMinutes: 0
       };
     }
-    const todayMinutes = this.getTodayReadingMinutes(childId, currentSessionId);
+    const now = new Date();
+    const todayMinutes = this.getTodayReadingMinutes(childId, currentSessionId, now);
     const currentSessionTodayMinutes = Math.floor(
-      this.getCurrentSessionTodayDurationSeconds(sessionStartTime, currentSessionDuration) / 60
+      this.getCurrentSessionTodayDurationSeconds(sessionStartTime, currentSessionDuration, now) / 60
+    );
+    const rollingWindowStart = this.getRollingWindowStart(policy, now);
+    const rollingSeconds = this.getRollingWindowReadingSeconds(
+      childId,
+      rollingWindowStart,
+      now,
+      currentSessionId,
+      now
+    ) + this.getCurrentSessionRollingWindowSeconds(
+      sessionStartTime,
+      currentSessionDuration,
+      rollingWindowStart,
+      now
+    );
+    const currentSessionSeconds = this.getCurrentSessionRollingWindowSeconds(
+      sessionStartTime,
+      currentSessionDuration,
+      rollingWindowStart,
+      now
+    );
+    const continuousLimitSeconds = policy.continuousLimitMinutes * 60;
+    const rollingWindowMinutes = Math.max(
+      policy.continuousLimitMinutes,
+      policy.continuousLimitMinutes + policy.restMinutes
     );
 
     // 检查禁止时段
@@ -235,18 +361,17 @@ export class AntiAddictionService {
         shouldLock: true,
         reason: 'daily_limit_exceeded',
         message: `今日阅读时长已达${policy.dailyLimitMinutes}分钟上限`,
-        remainingContinuousMinutes: Math.max(0, policy.continuousLimitMinutes - currentSessionTodayMinutes),
+        remainingContinuousMinutes: Math.max(0, Math.floor((continuousLimitSeconds - rollingSeconds) / 60)),
         remainingDailyMinutes: 0
       };
     }
 
     // 检查连续阅读时长
-    const continuousMinutes = currentSessionTodayMinutes;
-    if (continuousMinutes >= policy.continuousLimitMinutes) {
+    if (currentSessionSeconds >= continuousLimitSeconds || rollingSeconds > continuousLimitSeconds) {
       return {
         shouldLock: true,
         reason: 'continuous_limit_exceeded',
-        message: `连续阅读已达${policy.continuousLimitMinutes}分钟，请休息${policy.restMinutes}分钟`,
+        message: `最近${rollingWindowMinutes}分钟内阅读已达${policy.continuousLimitMinutes}分钟，请休息${policy.restMinutes}分钟`,
         lockDurationMinutes: policy.restMinutes,
         remainingContinuousMinutes: 0,
         remainingDailyMinutes: Math.max(0, policy.dailyLimitMinutes - totalWithSession)
@@ -255,7 +380,7 @@ export class AntiAddictionService {
 
     return {
       shouldLock: false,
-      remainingContinuousMinutes: policy.continuousLimitMinutes - continuousMinutes,
+      remainingContinuousMinutes: Math.max(0, Math.floor((continuousLimitSeconds - rollingSeconds) / 60)),
       remainingDailyMinutes: Math.max(0, policy.dailyLimitMinutes - totalWithSession)
     };
   }

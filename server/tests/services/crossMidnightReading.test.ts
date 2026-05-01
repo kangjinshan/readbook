@@ -60,7 +60,7 @@ describe('cross-midnight reading handling', () => {
 
     expect(result.shouldLock).toBe(false);
     expect(result.remainingDailyMinutes).toBe(450);
-    expect(result.remainingContinuousMinutes).toBe(90);
+    expect(result.remainingContinuousMinutes).toBe(60);
   });
 
   it('splits end-session daily stats across Beijing dates', () => {

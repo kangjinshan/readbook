@@ -11,6 +11,7 @@ class DailyReadingResetApplierTest {
         override var todayReadingSeconds: Long = 0L,
         override var continuousReadingSeconds: Long = 0L,
         override var todayDate: String? = "2026-04-18",
+        override var lastReadingStoppedAtEpochMs: Long = 0L,
         override var lastAppliedDailyReadingResetEpochMs: Long = 0L
     ) : DailyReadingResetPreferences
 

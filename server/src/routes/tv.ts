@@ -498,7 +498,8 @@ router.post('/session/start', deviceAuth, requireDeviceBound, asyncHandler(async
     success(res, {
       allowed: false,
       reason: canStart.reason,
-      message: canStart.message
+      message: canStart.message,
+      lockDurationMinutes: canStart.lockDurationMinutes ?? 0
     });
     return;
   }
@@ -531,9 +532,16 @@ router.post('/session/start', deviceAuth, requireDeviceBound, asyncHandler(async
     allowed: true,
     policy: {
       dailyLimitMinutes: policy.dailyLimitMinutes,
-      continuousLimitMinutes: policy.continuousLimitMinutes
+      continuousLimitMinutes: policy.continuousLimitMinutes,
+      restMinutes: policy.restMinutes,
+      forbiddenStartTime: policy.forbiddenStartTime,
+      forbiddenEndTime: policy.forbiddenEndTime,
+      allowedFontSizes: policy.allowedFontSizes,
+      allowedThemes: policy.allowedThemes
     },
-    todayReadMinutes: todayMinutes
+    todayReadMinutes: todayMinutes,
+    continuousReadMinutes: antiAddictionService.getRollingWindowReadingMinutes(childId, policy),
+    continuousReadSeconds: antiAddictionService.getRollingWindowReadingSecondsForPolicy(childId, policy)
   });
 }));
 

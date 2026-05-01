@@ -4,6 +4,7 @@ interface DailyReadingResetPreferences {
     var todayReadingSeconds: Long
     var continuousReadingSeconds: Long
     var todayDate: String?
+    var lastReadingStoppedAtEpochMs: Long
     var lastAppliedDailyReadingResetEpochMs: Long
 }
 
@@ -21,6 +22,7 @@ class DailyReadingResetApplier(
         preferences.todayDate = today
         preferences.todayReadingSeconds = 0L
         preferences.continuousReadingSeconds = 0L
+        preferences.lastReadingStoppedAtEpochMs = 0L
         return readingControlCoordinator.handleDailyReadingReset(beijingTimeProvider.currentInstant())
     }
 
@@ -33,6 +35,7 @@ class DailyReadingResetApplier(
         preferences.todayDate = beijingTimeProvider.currentBeijingDate().toString()
         preferences.todayReadingSeconds = 0L
         preferences.continuousReadingSeconds = 0L
+        preferences.lastReadingStoppedAtEpochMs = 0L
         return readingControlCoordinator.handleDailyReadingReset(beijingTimeProvider.currentInstant())
     }
 }

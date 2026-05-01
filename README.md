@@ -36,7 +36,7 @@ readbook/
 - 封面路径规范化与公开封面 URL
 - 设备管理与 Token 过期（90 天）
 - TV 端 API（注册、绑定、同步、会话）
-- 防沉迷服务（北京时间跨日判定、跨 0 点会话按日切分）
+- 防沉迷服务（北京时间跨日判定、跨 0 点会话按日切分，连续阅读按“连续上限 + 休息时长”的动态滚动窗口兜底）
 - 书籍正文静态文件访问控制
 
 ### TV 阅读端（Android TV）
@@ -51,7 +51,7 @@ readbook/
 - 阅读页右上角剩余可用时间悬浮窗（绿色描边/绿色字体，按服务端最新策略实时倒计时）
 - 书架页双击返回退出应用
 - 阅读会话心跳
-- 本地防沉迷计时与锁定（跨天自动清零并清理陈旧“每日上限”本地锁）
+- 本地防沉迷计时与锁定（退出阅读不清零连续时长，休息达到策略配置后才重置；跨天自动清零并清理陈旧“每日上限”本地锁）
 
 ## 技术栈
 
@@ -74,6 +74,7 @@ readbook/
 - 涉及协议改动时，先确认 `server/src/routes/*` 的真实输出，再同步检查 `web` 与 `tv-app`
 - TV 阅读问题优先区分为：解析丢失、服务端分页、TV 本地排版三层
 - 项目时间语义后续统一向北京时间收敛，新增逻辑不要再引入隐式本地时区假设
+- 防沉迷连续阅读不是固定 20/15/5 分钟，必须使用策略里的 `continuousLimitMinutes` 与 `restMinutes` 计算：滚动窗口长度 = `continuousLimitMinutes + restMinutes`，窗口内允许阅读 = `continuousLimitMinutes`
 
 ## 本地开发
 
@@ -110,6 +111,12 @@ cd tv-app
 ./gradlew assembleRelease # 发布包
 ```
 
+TV 端默认调试地址是 `http://localhost:8015/`。安装到真实电视前必须显式传入电视可访问的服务端地址，否则电视会请求自己的 localhost：
+
+```bash
+./gradlew assembleDebug -PREADBOOK_BASE_URL=<api-base-url>/
+```
+
 ## 环境变量
 
 | 变量 | 描述 | 默认值 |
@@ -136,6 +143,7 @@ cd tv-app
 
 ```bash
 cd server
+npm test -- --runInBand
 npm run build
 
 rsync -avz --delete -e "ssh" dist/ <deploy-user>@<deploy-host>:<server-deploy-dir>/dist/
@@ -160,7 +168,7 @@ rsync -avz --delete -e "ssh" dist/ <deploy-user>@<deploy-host>:<web-deploy-dir>/
 
 ```bash
 cd tv-app
-./gradlew assembleDebug
+./gradlew assembleDebug -PREADBOOK_BASE_URL=<api-base-url>/
 
 adb connect <tv-device-ip>:5555
 adb -s <tv-device-ip>:5555 install -r app/build/outputs/apk/debug/app-debug.apk
@@ -218,6 +226,7 @@ ssh <deploy-user>@<deploy-host> "pm2 stop <pm2-process-name> && cd <server-deplo
 - TV 绑定码、在线状态、书架同步问题已修复
 - TV 书架同步会移除本地缓存中已被服务端下架的书籍
 - TV 阅读会话改为增量时长心跳，结束页码上报修正
+- Server/TV 连续阅读限制已改为动态滚动窗口：窗口长度由连续上限与休息时长相加得到，退出阅读后未休够不会重新从完整连续时长开始
 - TV 阅读器改为章节全文拉取 + 本地分页
 - TV 阅读器已支持段首两个中文空格缩进，并持续优化底部裁切问题
 - TV 阅读器已修复页首引号/标点跨页展示

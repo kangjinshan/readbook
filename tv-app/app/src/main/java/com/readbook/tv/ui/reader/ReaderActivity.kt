@@ -507,7 +507,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
 
     private fun startRemainingTimeTicker() {
         remainingBaseTodaySeconds = preferenceManager.todayReadingSeconds
-        remainingBaseContinuousSeconds = preferenceManager.continuousReadingSeconds
+        remainingBaseContinuousSeconds = currentContinuousReadingSecondsForDisplay()
         remainingBaseDate = preferenceManager.todayDate
         remainingTimerStartedAtMs = SystemClock.elapsedRealtime()
         remainingTimeHandler.removeCallbacks(remainingTimeRunnable)
@@ -533,7 +533,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     private fun syncRemainingTimeBaseIfNeeded() {
         val storedDate = preferenceManager.todayDate
         val storedTodaySeconds = preferenceManager.todayReadingSeconds
-        val storedContinuousSeconds = preferenceManager.continuousReadingSeconds
+        val storedContinuousSeconds = currentContinuousReadingSecondsForDisplay()
         val elapsedSeconds = ((SystemClock.elapsedRealtime() - remainingTimerStartedAtMs) / 1000L).coerceAtLeast(0L)
         val displayedTodaySeconds = remainingBaseTodaySeconds + elapsedSeconds
         val shouldResetBase = storedDate != remainingBaseDate ||
@@ -547,6 +547,19 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
         remainingBaseTodaySeconds = storedTodaySeconds
         remainingBaseContinuousSeconds = storedContinuousSeconds
         remainingTimerStartedAtMs = SystemClock.elapsedRealtime()
+    }
+
+    private fun currentContinuousReadingSecondsForDisplay(): Long {
+        val stoppedAt = preferenceManager.lastReadingStoppedAtEpochMs
+        val restMillis = preferenceManager.restMinutes.coerceAtLeast(0) * 60_000L
+        return if (
+            stoppedAt > 0L &&
+            System.currentTimeMillis() - stoppedAt >= restMillis
+        ) {
+            0L
+        } else {
+            preferenceManager.continuousReadingSeconds
+        }
     }
 
     private suspend fun loadProgress() {

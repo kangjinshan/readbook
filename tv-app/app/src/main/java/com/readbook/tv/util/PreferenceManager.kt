@@ -143,6 +143,13 @@ class PreferenceManager(context: Context) : ReadingPolicyPreferences, DailyReadi
         get() = sharedPreferences.getLong(KEY_LOCK_END_TIME, 0)
         set(value) = sharedPreferences.edit().putLong(KEY_LOCK_END_TIME, value).apply()
 
+    /**
+     * 最近一次退出阅读计时的时间
+     */
+    override var lastReadingStoppedAtEpochMs: Long
+        get() = sharedPreferences.getLong(KEY_LAST_READING_STOPPED_AT_EPOCH_MS, 0L)
+        set(value) = sharedPreferences.edit().putLong(KEY_LAST_READING_STOPPED_AT_EPOCH_MS, value).apply()
+
     // ==================== 允许设置 ====================
 
     /**
@@ -274,6 +281,7 @@ class PreferenceManager(context: Context) : ReadingPolicyPreferences, DailyReadi
         private const val KEY_TODAY_DATE = "today_date"
         private const val KEY_CONTINUOUS_READING = "continuous_reading"
         private const val KEY_LOCK_END_TIME = "lock_end_time"
+        private const val KEY_LAST_READING_STOPPED_AT_EPOCH_MS = "last_reading_stopped_at_epoch_ms"
         private const val KEY_ALLOWED_FONT_SIZES = "allowed_font_sizes"
         private const val KEY_ALLOWED_THEMES = "allowed_themes"
         private const val KEY_HEARTBEAT_INTERVAL = "heartbeat_interval"
