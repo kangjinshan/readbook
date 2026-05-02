@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   Alert,
@@ -45,7 +45,7 @@ const Stats: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   // 加载统计数据
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!currentChildId) return;
 
     setLoading(true);
@@ -72,11 +72,11 @@ const Stats: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentChildId, period, dateRange]);
 
   useEffect(() => {
     loadStats();
-  }, [currentChildId, period]);
+  }, [loadStats]);
 
   // 导出数据
   const handleExport = async () => {
@@ -157,7 +157,6 @@ const Stats: React.FC = () => {
           <RangePicker
             value={dateRange}
             onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
-            onOk={() => loadStats()}
           />
           <Button icon={<DownloadOutlined />} onClick={handleExport}>
             导出 CSV

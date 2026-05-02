@@ -51,7 +51,9 @@ export function usePolling(
     if (enabled) {
       // 立即执行一次
       if (immediate) {
-        savedCallback.current();
+        Promise.resolve(savedCallback.current()).catch((error) => {
+          console.error('轮询执行失败:', error);
+        });
       }
       start();
     } else {

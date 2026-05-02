@@ -24,33 +24,39 @@ const Dashboard: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   // 加载仪表盘数据
-  const loadDashboardData = async () => {
+  useEffect(() => {
     if (!currentChildId) return;
 
+    let cancelled = false;
     setLoading(true);
     setErrorMessage('');
-    try {
-      // 并行加载数据
-      const [status, stats, summaryData] = await Promise.all([
-        getRealtimeStatus(currentChildId),
-        getDailyStats(currentChildId, {}),
-        getSummary(currentChildId, { period: 'week' }),
-      ]);
 
-      setRealtimeStatus(status);
-      setDailyStats(stats);
-      setSummary(summaryData);
-    } catch (error) {
-      console.error('加载仪表盘数据失败:', error);
-      setErrorMessage('加载仪表盘数据失败，请稍后重试');
-    } finally {
-      setLoading(false);
-    }
-  };
+    (async () => {
+      try {
+        const [status, stats, summaryData] = await Promise.all([
+          getRealtimeStatus(currentChildId),
+          getDailyStats(currentChildId, {}),
+          getSummary(currentChildId, { period: 'week' }),
+        ]);
 
-  // 初始加载
-  useEffect(() => {
-    loadDashboardData();
+        if (!cancelled) {
+          setRealtimeStatus(status);
+          setDailyStats(stats);
+          setSummary(summaryData);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error('加载仪表盘数据失败:', error);
+          setErrorMessage('加载仪表盘数据失败，请稍后重试');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, [currentChildId]);
 
   // 轮询实时状态（30秒）

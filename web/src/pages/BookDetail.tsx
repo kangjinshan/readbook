@@ -66,6 +66,7 @@ const BookDetail: React.FC = () => {
       setSelectedChildren(data.assignedChildren?.map((c) => c.childId) || []);
     } catch (error) {
       console.error('加载书籍详情失败:', error);
+      message.error(getErrorMessage(error, '加载书籍详情失败'));
     } finally {
       setLoading(false);
     }
@@ -211,7 +212,10 @@ const BookDetail: React.FC = () => {
   ];
 
   if (!book) {
-    return <div>加载中...</div>;
+    if (loading) {
+      return <div>加载中...</div>;
+    }
+    return <div>书籍加载失败，请返回重试</div>;
   }
 
   const coverSrc = book.coverPath

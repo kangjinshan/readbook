@@ -60,7 +60,7 @@ function formatUtcDateTime(date: Date): string {
 
 function closeDanglingReadingSessions(childId: number, now: Date = new Date()): void {
   const sessions = query(
-    `SELECT id, start_time, start_page, end_page, duration_seconds
+    `SELECT id, book_id, start_time, start_page, end_page, duration_seconds
      FROM reading_sessions
      WHERE child_id = ? AND end_time IS NULL`,
     [childId]
@@ -85,6 +85,18 @@ function closeDanglingReadingSessions(childId: number, now: Date = new Date()): 
         end_page = COALESCE(end_page, start_page)
       WHERE id = ?`,
       [formatUtcDateTime(resolvedEndTime), safeDurationSeconds, session.id]
+    );
+
+    const durationMinutes = Math.floor(safeDurationSeconds / 60);
+    const resolvedEndPage = Number(session.end_page ?? session.start_page);
+    const pagesRead = Math.max(0, resolvedEndPage - Number(session.start_page));
+    antiAddictionService.updateDailyStats(
+      childId,
+      session.start_time,
+      resolvedEndTime.toISOString(),
+      durationMinutes,
+      pagesRead,
+      session.book_id as number
     );
   });
 }
@@ -694,17 +706,17 @@ router.post('/session/end', deviceAuth, requireDeviceBound, asyncHandler(async (
     Number(session.duration_seconds || Math.floor((endTime.getTime() - startTime.getTime()) / 1000))
   );
   const durationMinutes = Math.floor(durationSeconds / 60);
-  const resolvedEndPage = endPage ?? Number(session.start_page);
+  const resolvedEndPage = endPage ?? Number(session.end_page ?? session.start_page);
   const pagesRead = resolvedEndPage - Number(session.start_page);
 
   // 更新会话
   execute(
     `UPDATE reading_sessions SET
-      end_time = CURRENT_TIMESTAMP,
+      end_time = ?,
       duration_seconds = ?,
       end_page = ?
     WHERE id = ?`,
-    [durationSeconds, resolvedEndPage, sessionId]
+    [formatUtcDateTime(endTime), durationSeconds, resolvedEndPage, sessionId]
   );
 
   // 更新每日统计
@@ -736,6 +748,16 @@ router.post('/bookmarks', deviceAuth, requireDeviceBound, asyncHandler(async (re
 
   if (bookId === null || pageNumber === null) {
     error(res, ErrorCodes.PARAM_ERROR, '缺少必要参数');
+    return;
+  }
+
+  // 检查书籍是否已分配给该孩子
+  const assignment = queryOne(
+    'SELECT id FROM book_assignments WHERE child_id = ? AND book_id = ?',
+    [childId, bookId]
+  );
+  if (!assignment) {
+    error(res, ErrorCodes.BOOK_NOT_FOUND, '该书籍未分配给当前孩子');
     return;
   }
 

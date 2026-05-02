@@ -23,6 +23,17 @@ client.interceptors.request.use(
   }
 );
 
+let isRedirecting = false;
+
+function redirectToLogin(msg: string) {
+  if (isRedirecting) return;
+  isRedirecting = true;
+  message.error(msg);
+  window.location.href = '/login';
+  // SPA 导航到 /login 后重置标志，允许后续会话过期时正常提示
+  setTimeout(() => { isRedirecting = false; }, 3000);
+}
+
 // 响应拦截器
 client.interceptors.response.use(
   (response) => {
@@ -37,10 +48,8 @@ client.interceptors.response.use(
     if (res.code !== 0) {
       // 认证相关错误
       if (res.code === 1003 || res.code === 1004) {
-        // Session 过期或未登录，跳转到登录页
         if (window.location.pathname !== '/login') {
-          message.error('登录已过期，请重新登录');
-          window.location.href = '/login';
+          redirectToLogin('登录已过期，请重新登录');
         }
       }
       return Promise.reject(new Error(res.message || '请求失败'));
@@ -52,8 +61,7 @@ client.interceptors.response.use(
     // 网络错误处理
     if (error.response?.status === 401) {
       if (window.location.pathname !== '/login') {
-        message.error('请先登录');
-        window.location.href = '/login';
+        redirectToLogin('请先登录');
       }
     } else if (error.response?.status === 403) {
       message.error('没有权限执行该操作');

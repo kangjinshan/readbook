@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { getErrorMessage } from '@/utils/error';
 import styles from './Login.module.css';
 
 const Login: React.FC = () => {
@@ -19,8 +20,8 @@ const Login: React.FC = () => {
       });
       message.success('登录成功');
       navigate('/dashboard');
-    } catch (error: any) {
-      message.error(error.message || '登录失败，请检查用户名和密码');
+    } catch (error) {
+      message.error(getErrorMessage(error, '登录失败，请检查用户名和密码'));
     } finally {
       setLoading(false);
     }

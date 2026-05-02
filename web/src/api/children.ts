@@ -1,4 +1,5 @@
 import client from './client';
+import { unwrapData } from './helpers';
 import type { ApiResponse, Child } from '@/types';
 
 export interface CreateChildParams {
@@ -15,13 +16,13 @@ export interface UpdateChildParams {
 // 获取子账号列表
 export async function getChildren(): Promise<Child[]> {
   const response = await client.get<ApiResponse<Child[]>>('/children');
-  return response.data.data || [];
+  return response.data.data ?? [];
 }
 
 // 创建子账号
 export async function createChild(params: CreateChildParams): Promise<number> {
   const response = await client.post<ApiResponse<{ childId: number }>>('/children', params);
-  return response.data.data!.childId;
+  return unwrapData(response, '创建子账号失败').childId;
 }
 
 // 更新子账号

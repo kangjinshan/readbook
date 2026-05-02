@@ -27,16 +27,12 @@ export interface Child {
 export interface Device {
   id: number;
   deviceName?: string;
-  deviceToken?: string;
   childId?: number;
   childName?: string;
-  bindCode?: string;
-  bindCodeExpiresAt?: string;
   lastOnlineAt?: string;
   createdAt?: string;
   online?: boolean;
   bound?: boolean;
-  isOwner?: boolean;
   remoteCommand?: string;
 }
 

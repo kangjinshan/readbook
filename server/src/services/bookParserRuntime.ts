@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { promises as fsPromises, readFileSync } from 'fs';
 import { config } from '../config';
+import { queryOne } from '../database';
 import { buildCoverDiskPath, buildStoredCoverPath, pickCoverExtension } from '../utils/bookCover';
 
 const { readFile, writeFile, mkdir, readdir, copyFile, access, stat } = fsPromises;
@@ -791,7 +792,9 @@ class BookParserRunner {
 
     for (const cssPart of cssParts) {
       try {
-        const cssContent = await readFile(cssPart.href, 'utf-8');
+        const safePath = resolveChapterAssetPath(cssPart.href, this.parsedDir);
+        if (!safePath) continue;
+        const cssContent = await readFile(path.join(this.parsedDir, safePath), 'utf-8');
         const matches = cssContent.matchAll(/\.([a-zA-Z0-9_-]+)\s*\{[^}]*?\bwidth:\s*([0-9.]+)%/g);
         for (const match of matches) {
           const className = match[1]?.trim();
@@ -814,7 +817,9 @@ class BookParserRunner {
 
     for (const cssPart of cssParts) {
       try {
-        const cssContent = await readFile(cssPart.href, 'utf-8');
+        const safePath = resolveChapterAssetPath(cssPart.href, this.parsedDir);
+        if (!safePath) continue;
+        const cssContent = await readFile(path.join(this.parsedDir, safePath), 'utf-8');
         cssTexts.push(rewriteAssetReferencesToRelative(cssContent, this.parsedDir));
       } catch {
         continue;
@@ -881,6 +886,47 @@ export async function getPageContent(bookId: number, pageNumber: number): Promis
     return null;
   }
 
+  // 先用数据库查询找到包含该页的章节，避免读取所有章节文件
+  const chapterRow = queryOne(
+    'SELECT chapter_index FROM chapters WHERE book_id = ? AND start_page <= ? AND end_page >= ?',
+    [bookId, pageNumber, pageNumber]
+  );
+
+  if (chapterRow) {
+    const chapterIndex = chapterRow.chapter_index as number;
+    const chapterFile = path.join(parsedDir, `chapter_${chapterIndex}.json`);
+    try {
+      const content = await readFile(chapterFile, 'utf-8');
+      const chapter: ChapterContent = JSON.parse(content);
+
+      if (chapter.contentBlocks?.length) {
+        const pages = buildPreviewPagesFromContentBlocks(chapter.contentBlocks);
+        const pageIndex = pageNumber - chapter.startPage;
+        const page = pages[pageIndex];
+        if (page) {
+          return {
+            content: page.content,
+            chapter: chapter.index,
+            contentBlocks: page.contentBlocks,
+          };
+        }
+      }
+
+      const pageSize = 800;
+      const pageIndex = pageNumber - chapter.startPage;
+      const startIndex = pageIndex * pageSize;
+      const endIndex = startIndex + pageSize;
+
+      return {
+        content: chapter.content.substring(startIndex, endIndex),
+        chapter: chapter.index
+      };
+    } catch {
+      // Fall through to scan
+    }
+  }
+
+  // Fallback: scan files if DB query misses (e.g., no chapters table entry)
   const files = (await readdir(parsedDir)).filter((file) => file.startsWith('chapter_'));
 
   for (const file of files) {

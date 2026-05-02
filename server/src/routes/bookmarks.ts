@@ -144,7 +144,11 @@ router.delete('/batch-delete', asyncHandler(async (req: Request, res: Response) 
     validIds
   );
 
-  success(res, null, '批量删除成功');
+  const skippedCount = bookmarkIds.length - validIds.length;
+  const msg = skippedCount > 0
+    ? `成功删除 ${validIds.length} 个书签，${skippedCount} 个无权限已跳过`
+    : '批量删除成功';
+  success(res, { deletedCount: validIds.length, skippedCount }, msg);
 }));
 
 /**

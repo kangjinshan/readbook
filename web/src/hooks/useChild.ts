@@ -46,10 +46,17 @@ export function useChild(): UseChildReturn {
 
   // 初始化加载
   useEffect(() => {
-    if (children.length === 0) {
+    // 未登录时不自动加载（避免登出时清空 children 触发多余请求）
+    if (children.length === 0 && currentChildId !== null) {
       loadChildren();
+    } else if (children.length === 0 && currentChildId === null) {
+      // 只在首次挂载时加载，检查 store 是否有登录状态
+      const stored = useStore.getState();
+      if (stored.isLoggedIn) {
+        loadChildren();
+      }
     }
-  }, [children.length, loadChildren]);
+  }, [children.length, currentChildId, loadChildren]);
 
   return {
     children,

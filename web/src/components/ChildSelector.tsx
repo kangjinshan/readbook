@@ -31,18 +31,18 @@ const ChildSelector: React.FC<ChildSelectorProps> = ({
       optionFilterProp="label"
       options={children.map((child) => ({
         value: child.id,
-        label: (
-          <Space>
-            {child.avatar ? (
-              <Avatar size="small" src={child.avatar} />
-            ) : (
-              <Avatar size="small" icon={<UserOutlined />} />
-            )}
-            <span>{child.name}</span>
-          </Space>
-        ),
+        label: child.name,
       }))}
-      optionRender={(option) => option.data.label}
+      optionRender={(option) => (
+        <Space>
+          {children.find(c => c.id === option.value)?.avatar ? (
+            <Avatar size="small" src={children.find(c => c.id === option.value)!.avatar} />
+          ) : (
+            <Avatar size="small" icon={<UserOutlined />} />
+          )}
+          <span>{option.label}</span>
+        </Space>
+      )}
     />
   );
 };

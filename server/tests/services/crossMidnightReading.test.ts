@@ -65,6 +65,7 @@ describe('cross-midnight reading handling', () => {
 
   it('splits end-session daily stats across Beijing dates', () => {
     (queryOne as jest.Mock)
+      .mockReturnValueOnce(null) // daily_reading_reset_at check
       .mockReturnValueOnce({ id: 1, total_minutes: 120, pages_read: 20 })
       .mockReturnValueOnce({ id: 2, total_minutes: 10, pages_read: 2 });
     (query as jest.Mock)

@@ -38,14 +38,19 @@ describe('AntiAddictionService', () => {
   it('resetDailyReading zeroes today total_minutes and bumps reset marker', () => {
     service.resetDailyReading(7);
 
-    expect(execute).toHaveBeenCalledTimes(2);
+    expect(execute).toHaveBeenCalledTimes(3);
     expect(execute).toHaveBeenNthCalledWith(
       1,
-      'UPDATE daily_stats SET total_minutes = 0 WHERE child_id = ? AND stat_date = ?',
-      [7, '2026-04-18']
+      expect.stringContaining('UPDATE reading_sessions SET reset_at'),
+      expect.arrayContaining([expect.any(String), 7, expect.any(String), expect.any(String)])
     );
     expect(execute).toHaveBeenNthCalledWith(
       2,
+      'UPDATE daily_stats SET total_minutes = 0, pages_read = 0, books_read = 0, sessions_count = 0 WHERE child_id = ? AND stat_date = ?',
+      [7, '2026-04-18']
+    );
+    expect(execute).toHaveBeenNthCalledWith(
+      3,
       'UPDATE children SET daily_reading_reset_at = ? WHERE id = ?',
       ['2026-04-18T10:30:00.000Z', 7]
     );

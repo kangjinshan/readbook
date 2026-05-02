@@ -49,7 +49,18 @@ export const useStore = create<AppState>()(
       // 认证状态
       isLoggedIn: false,
       admin: null,
-      setAdmin: (admin) => set({ admin, isLoggedIn: !!admin }),
+      setAdmin: (admin) => set({
+        admin,
+        isLoggedIn: !!admin,
+        // 登出时清空所有用户相关数据
+        ...(admin === null ? {
+          currentChildId: null,
+          currentChild: null,
+          children: [],
+          devices: [],
+          books: []
+        } : {})
+      }),
       setLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),
 
       // 当前选中的子账号

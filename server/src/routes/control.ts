@@ -55,27 +55,27 @@ router.put('/:childId', requireOwnedChild(req => parseRouteInt(req.params.childI
   const allowedThemes = req.body.allowed_themes ?? req.body.allowedThemes;
 
   // 参数验证
-  if (dailyLimitMinutes !== undefined && dailyLimitMinutes < 0) {
-    error(res, ErrorCodes.PARAM_ERROR, '每日限制时长不能为负数');
+  if (dailyLimitMinutes !== undefined && (dailyLimitMinutes <= 0 || !Number.isInteger(dailyLimitMinutes))) {
+    error(res, ErrorCodes.PARAM_ERROR, '每日限制时长必须为正整数');
     return;
   }
 
-  if (continuousLimitMinutes !== undefined && continuousLimitMinutes < 0) {
-    error(res, ErrorCodes.PARAM_ERROR, '连续阅读限制不能为负数');
+  if (continuousLimitMinutes !== undefined && (continuousLimitMinutes <= 0 || !Number.isInteger(continuousLimitMinutes))) {
+    error(res, ErrorCodes.PARAM_ERROR, '连续阅读限制必须为正整数');
     return;
   }
 
-  if (restMinutes !== undefined && restMinutes < 0) {
-    error(res, ErrorCodes.PARAM_ERROR, '休息时长不能为负数');
+  if (restMinutes !== undefined && (restMinutes <= 0 || !Number.isInteger(restMinutes))) {
+    error(res, ErrorCodes.PARAM_ERROR, '休息时长必须为正整数');
     return;
   }
 
-  if (forbiddenStartTime && !isValidTime(forbiddenStartTime)) {
+  if (forbiddenStartTime !== undefined && forbiddenStartTime !== '' && !isValidTime(forbiddenStartTime)) {
     error(res, ErrorCodes.PARAM_ERROR, '禁止开始时间格式错误');
     return;
   }
 
-  if (forbiddenEndTime && !isValidTime(forbiddenEndTime)) {
+  if (forbiddenEndTime !== undefined && forbiddenEndTime !== '' && !isValidTime(forbiddenEndTime)) {
     error(res, ErrorCodes.PARAM_ERROR, '禁止结束时间格式错误');
     return;
   }
@@ -93,8 +93,8 @@ router.put('/:childId', requireOwnedChild(req => parseRouteInt(req.params.childI
     dailyLimitMinutes: dailyLimitMinutes ?? currentPolicy.dailyLimitMinutes,
     continuousLimitMinutes: continuousLimitMinutes ?? currentPolicy.continuousLimitMinutes,
     restMinutes: restMinutes ?? currentPolicy.restMinutes,
-    forbiddenStartTime: forbiddenStartTime !== undefined ? forbiddenStartTime : currentPolicy.forbiddenStartTime,
-    forbiddenEndTime: forbiddenEndTime !== undefined ? forbiddenEndTime : currentPolicy.forbiddenEndTime,
+    forbiddenStartTime: forbiddenStartTime !== undefined ? (forbiddenStartTime || null) : currentPolicy.forbiddenStartTime,
+    forbiddenEndTime: forbiddenEndTime !== undefined ? (forbiddenEndTime || null) : currentPolicy.forbiddenEndTime,
     allowedFontSizes: allowedFontSizes ?? currentPolicy.allowedFontSizes,
     allowedThemes: allowedThemes ?? currentPolicy.allowedThemes
   };

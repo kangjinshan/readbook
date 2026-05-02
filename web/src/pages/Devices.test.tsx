@@ -51,7 +51,6 @@ describe('Devices page', () => {
       },
       {
         id: 2,
-        deviceToken: 'abcdef123456',
         bound: false,
         online: false,
       },

@@ -41,6 +41,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase().substring(1);
     if (config.upload.allowedFormats.includes(ext)) {
@@ -686,9 +687,14 @@ router.put('/:id', asyncHandler(async (req: Request, res: Response) => {
     return;
   }
 
+  if (!title || !title.trim()) {
+    error(res, ErrorCodes.PARAM_ERROR, '书籍标题不能为空');
+    return;
+  }
+
   // 验证权限
   const book = queryOne(
-    'SELECT id FROM books WHERE id = ? AND admin_id = ?',
+    'SELECT id, title, author, publisher FROM books WHERE id = ? AND admin_id = ?',
     [bookId, adminId]
   );
 
@@ -697,9 +703,12 @@ router.put('/:id', asyncHandler(async (req: Request, res: Response) => {
     return;
   }
 
+  const resolvedAuthor = author !== undefined ? author : book.author;
+  const resolvedPublisher = publisher !== undefined ? publisher : book.publisher;
+
   execute(
     `UPDATE books SET title = ?, author = ?, publisher = ? WHERE id = ?`,
-    [title, author, publisher, bookId]
+    [title.trim(), resolvedAuthor, resolvedPublisher, bookId]
   );
 
   success(res, null, '更新成功');
@@ -856,10 +865,29 @@ router.delete('/:id/assign', asyncHandler(async (req: Request, res: Response) =>
     return;
   }
 
+  // 验证 childIds 为正整数且属于当前管理员
+  const validChildIds = childIds.filter((id: unknown) => typeof id === 'number' && Number.isInteger(id) && id > 0);
+  if (validChildIds.length !== childIds.length) {
+    error(res, ErrorCodes.PARAM_ERROR, '子账号ID格式无效');
+    return;
+  }
+
+  const validChildren = query(
+    `SELECT id FROM children WHERE id IN (${validChildIds.map(() => '?').join(',')}) AND admin_id = ?`,
+    [...validChildIds, adminId]
+  );
+
+  const ownedChildIds = validChildren.map(c => c.id as number);
+
+  if (ownedChildIds.length === 0) {
+    error(res, ErrorCodes.PARAM_ERROR, '没有有效的子账号');
+    return;
+  }
+
   // 取消授权
   execute(
-    `DELETE FROM book_assignments WHERE book_id = ? AND child_id IN (${childIds.map(() => '?').join(',')})`,
-    [bookId, ...childIds]
+    `DELETE FROM book_assignments WHERE book_id = ? AND child_id IN (${ownedChildIds.map(() => '?').join(',')})`,
+    [bookId, ...ownedChildIds]
   );
 
   success(res, null, '取消授权成功');
@@ -871,10 +899,15 @@ router.delete('/:id/assign', asyncHandler(async (req: Request, res: Response) =>
  */
 router.get('/:id/preview', asyncHandler(async (req: Request, res: Response) => {
   const adminId = getCurrentAdminId(req)!;
-  const bookId = parseInt(req.params.id);
+  const bookId = parseRouteInt(req.params.id);
   const chapter = parseInt(req.query.chapter as string) || 1;
   const page = parseInt(req.query.page as string) || 1;
   const origin = getRequestOrigin(req);
+
+  if (bookId === null) {
+    error(res, ErrorCodes.PARAM_ERROR, '无效的书籍ID');
+    return;
+  }
 
   // 验证书籍权限
   const book = queryOne(

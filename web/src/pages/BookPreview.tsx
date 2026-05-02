@@ -164,7 +164,7 @@ function buildWebviewPreviewDocument(params: {
         name="viewport"
         content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
       />
-      <base href="${params.renderBaseUrl}" />
+      <base href="${escapeHtml(params.renderBaseUrl)}" />
       <style>
         :root {
           color-scheme: light;

@@ -23,6 +23,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useChild } from '@/hooks/useChild';
 import { createChild, updateChild, deleteChild } from '@/api/children';
+import { getErrorMessage } from '@/utils/error';
 import type { Child } from '@/types';
 import styles from './Children.module.css';
 
@@ -69,8 +70,8 @@ const Children: React.FC = () => {
       await deleteChild(id);
       message.success('删除成功');
       loadChildren();
-    } catch (error: any) {
-      message.error(error.message || '删除失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '删除失败'));
     }
   };
 
@@ -92,8 +93,8 @@ const Children: React.FC = () => {
 
       setModalVisible(false);
       loadChildren();
-    } catch (error: any) {
-      message.error(error.message || '操作失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '操作失败'));
     }
   };
 

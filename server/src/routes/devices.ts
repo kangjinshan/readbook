@@ -90,11 +90,11 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const adminId = getCurrentAdminId(req)!;
 
   const devices = query(
-    `SELECT d.id, d.device_name, d.device_token, d.child_id, d.last_online_at, d.created_at,
+    `SELECT d.id, d.device_name, d.child_id, d.last_online_at, d.created_at,
       c.name as child_name
      FROM devices d
      LEFT JOIN children c ON d.child_id = c.id
-     WHERE d.admin_id = ? OR d.admin_id IS NULL
+     WHERE d.admin_id = ?
      ORDER BY d.last_online_at DESC NULLS LAST`,
     [adminId]
   );
@@ -105,14 +105,12 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
     return {
       id: d.id,
       deviceName: d.device_name,
-      deviceToken: d.device_token,
       childId: d.child_id,
       childName: d.child_name,
       lastOnlineAt: formatStoredUtcDateTimeForApi(d.last_online_at),
       createdAt: formatStoredUtcDateTimeForApi(d.created_at),
       online,
-      bound: !!d.child_id,
-      isOwner: !d.admin_id || d.admin_id === adminId
+      bound: !!d.child_id
     };
   });
 
@@ -126,13 +124,13 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 router.get('/all', asyncHandler(async (req: Request, res: Response) => {
   const adminId = getCurrentAdminId(req)!;
 
-  // 获取所有未绑定设备 + 当前管理员已绑定的设备
+  // 获取当前管理员的所有设备（含未绑定和已绑定）
   const devices = query(
-    `SELECT d.id, d.device_name, d.device_token, d.child_id, d.last_online_at, d.created_at,
+    `SELECT d.id, d.device_name, d.child_id, d.last_online_at, d.created_at,
       c.name as child_name
      FROM devices d
      LEFT JOIN children c ON d.child_id = c.id
-     WHERE d.admin_id IS NULL OR d.admin_id = ?
+     WHERE d.admin_id = ?
      ORDER BY d.last_online_at DESC NULLS LAST`,
     [adminId]
   );
@@ -143,7 +141,6 @@ router.get('/all', asyncHandler(async (req: Request, res: Response) => {
     return {
       id: d.id,
       deviceName: d.device_name,
-      deviceToken: d.device_token,
       childId: d.child_id,
       childName: d.child_name,
       lastOnlineAt: formatStoredUtcDateTimeForApi(d.last_online_at),

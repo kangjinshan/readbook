@@ -20,7 +20,17 @@ This repo contains three coupled apps:
 - The maximum readable time inside that window is `continuousLimitMinutes`.
 - Exiting the TV reader must not reset continuous reading time. It only pauses counting; reset is allowed after the configured rest duration has elapsed.
 - Server-side checks are the source of truth across sessions/devices. TV-side counters are a local fast path and display aid.
+- `canStartReading` enforces both daily limit AND continuous limit (rolling window). A child cannot start a new session if the continuous limit was exceeded without sufficient rest.
+- `resetDailyReading` zeroes `daily_stats` AND marks sessions with `reset_at`. `getTodayReadingMinutes`, `getRollingWindowReadingSeconds`, and `updateDailyStats` all respect `children.daily_reading_reset_at` — sessions ended before the reset are excluded from all calculations.
 - When changing server TV API response fields, update the Kotlin DTOs in `tv-app/app/src/main/java/com/readbook/tv/data/api/ApiResponse.kt` and keep backward compatibility for fields older deployed servers may omit.
+
+## Security Rules
+
+- Device tokens are long-lived API credentials and must never be returned in admin-facing API responses.
+- Book upload size is capped at 200MB.
+- Login regenerates session ID to prevent session fixation attacks.
+- CSS file paths from epub parsing are validated against the book's parsed directory (no path traversal).
+- Initial admin credentials are never logged to stdout.
 
 ## Verification
 

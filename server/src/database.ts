@@ -234,12 +234,14 @@ function createTables(database: Database): void {
       duration_seconds INTEGER,
       start_page INTEGER NOT NULL,
       end_page INTEGER,
+      reset_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (child_id) REFERENCES children(id) ON DELETE CASCADE,
       FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
       FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
     )
   `);
+  ensureColumn(database, 'reading_sessions', 'reset_at', 'DATETIME');
 
   // 会话索引
   database.run(`
@@ -328,7 +330,7 @@ async function initDefaultAdmin(database: Database): Promise<void> {
       'INSERT INTO admins (username, password_hash, email) VALUES (?, ?, ?)',
       [config.admin.initialUsername, hashedPassword, 'admin@example.com']
     );
-    console.log(`已创建初始管理员账号: ${config.admin.initialUsername} / ${initialPassword}`);
+    console.log(`已创建初始管理员账号: ${config.admin.initialUsername}，请查看环境变量 ADMIN_INITIAL_PASSWORD 获取密码`);
   }
 }
 

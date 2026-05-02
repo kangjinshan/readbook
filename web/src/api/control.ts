@@ -1,4 +1,5 @@
 import client from './client';
+import { unwrapData } from './helpers';
 import type { ApiResponse, ControlPolicy } from '@/types';
 
 export interface UpdateControlParams {
@@ -14,7 +15,7 @@ export interface UpdateControlParams {
 // 获取防沉迷策略
 export async function getControlPolicy(childId: number): Promise<ControlPolicy> {
   const response = await client.get<ApiResponse<ControlPolicy>>(`/control/${childId}`);
-  return response.data.data!;
+  return unwrapData(response, '获取策略失败');
 }
 
 // 更新防沉迷策略

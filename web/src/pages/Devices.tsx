@@ -72,7 +72,7 @@ const Devices: React.FC = () => {
       setDevices(boundData);
       setAllDevices(allData);
     } catch (error) {
-      console.error('加载设备列表失败:', error);
+      message.error(getErrorMessage(error, '加载设备列表失败'));
     } finally {
       setLoading(false);
     }
@@ -248,16 +248,6 @@ const Devices: React.FC = () => {
 
   // 未绑定设备表格列定义
   const unboundColumns: ColumnsType<Device> = [
-    {
-      title: '设备Token',
-      dataIndex: 'deviceToken',
-      key: 'deviceToken',
-      render: (token: string) => (
-        <span style={{ fontFamily: 'monospace', fontSize: 12 }}>
-          {token ? `${token.substring(0, 8)}...${token.substring(token.length - 4)}` : '-'}
-        </span>
-      ),
-    },
     {
       title: '设备名称',
       dataIndex: 'deviceName',

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { error } from '../utils/response';
 import { ErrorCodes } from '../config';
-import { queryOne } from '../database';
+import { queryOne, execute } from '../database';
 import { parseStoredUtcDateTime } from '../utils/dateUtils';
 
 // Token 过期时间（90天）
@@ -46,7 +46,6 @@ export async function deviceAuth(req: Request, res: Response, next: NextFunction
     // 更新最后在线时间（每次请求更新，但不频繁更新）
     const ONE_HOUR = 60 * 60 * 1000;
     if (now - lastOnlineAt > ONE_HOUR) {
-      const { execute } = await import('../database');
       execute(
         'UPDATE devices SET last_online_at = CURRENT_TIMESTAMP WHERE id = ?',
         [device.id]

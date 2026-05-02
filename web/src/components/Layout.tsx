@@ -99,7 +99,7 @@ const AppLayout: React.FC = () => {
         </div>
         <Menu
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={['/' + location.pathname.split('/')[1]]}
           items={menuItems}
           onClick={handleMenuClick}
         />

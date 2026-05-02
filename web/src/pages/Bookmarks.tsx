@@ -36,7 +36,7 @@ const Bookmarks: React.FC = () => {
   useEffect(() => {
     const loadBookOptions = async () => {
       try {
-        const data = await getBooks();
+        const data = await getBooks({ limit: 1000 });
         setBooks(data.items);
       } catch (error) {
         console.error('加载书籍列表失败:', error);
@@ -59,7 +59,7 @@ const Bookmarks: React.FC = () => {
       });
       setBookmarks(data);
     } catch (error) {
-      console.error('加载书签失败:', error);
+      message.error(getErrorMessage(error, '加载书签失败'));
     } finally {
       setLoading(false);
     }

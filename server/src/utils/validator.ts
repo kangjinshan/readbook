@@ -45,7 +45,7 @@ export function getSingleQueryParam(value: unknown): string | undefined {
  */
 export function parseRouteInt(value: string): number | null {
   const parsed = parseInt(value, 10);
-  return Number.isNaN(parsed) ? null : parsed;
+  return (Number.isNaN(parsed) || parsed <= 0) ? null : parsed;
 }
 
 /**

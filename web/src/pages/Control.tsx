@@ -12,6 +12,7 @@ import {
   Divider,
 } from 'antd';
 import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
+import { getErrorMessage } from '@/utils/error';
 import dayjs from 'dayjs';
 import { useChild } from '@/hooks/useChild';
 import ChildSelector from '@/components/ChildSelector';
@@ -45,7 +46,7 @@ const Control: React.FC = () => {
         allowedThemes: policy.allowedThemes || ['yellow', 'white', 'dark'],
       });
     } catch (error) {
-      console.error('加载策略失败:', error);
+      message.error(getErrorMessage(error, '加载策略失败'));
     } finally {
       setLoading(false);
     }
@@ -59,9 +60,26 @@ const Control: React.FC = () => {
   }, [currentChildId]);
 
   // 保存策略
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: {
+    dailyLimitMinutes: number;
+    continuousLimitMinutes: number;
+    restMinutes: number;
+    forbiddenStartTime: dayjs.Dayjs | null;
+    forbiddenEndTime: dayjs.Dayjs | null;
+    allowedFontSizes: string[];
+    allowedThemes: string[];
+  }) => {
     if (!currentChildId) {
       message.warning('请先选择子账号');
+      return;
+    }
+
+    if (!values.allowedFontSizes || values.allowedFontSizes.length === 0) {
+      message.error('至少需要选择一个字号');
+      return;
+    }
+    if (!values.allowedThemes || values.allowedThemes.length === 0) {
+      message.error('至少需要选择一个主题');
       return;
     }
 
@@ -77,8 +95,8 @@ const Control: React.FC = () => {
         allowedThemes: values.allowedThemes,
       });
       message.success('保存成功');
-    } catch (error: any) {
-      message.error(error.message || '保存失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '保存失败'));
     } finally {
       setSaving(false);
     }
@@ -91,8 +109,8 @@ const Control: React.FC = () => {
     try {
       await resetDailyReading(currentChildId);
       message.success('已重置今日阅读时长');
-    } catch (error: any) {
-      message.error(error.message || '重置失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '重置失败'));
     }
   };
 

@@ -74,20 +74,21 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
 
   clearLoginFailures(clientIp, username);
 
-  // 设置Session
-  req.session.adminId = admin.id as number;
-  req.session.username = admin.username as string;
+  // 重新生成 session ID 防止会话固定攻击
+  req.session.regenerate(() => {
+    req.session.adminId = admin.id as number;
+    req.session.username = admin.username as string;
 
-  // 记录登录日志
-  execute(
-    'INSERT INTO operation_logs (admin_id, operation, ip_address) VALUES (?, ?, ?)',
-    [admin.id, 'login', req.ip]
-  );
+    execute(
+      'INSERT INTO operation_logs (admin_id, operation, ip_address) VALUES (?, ?, ?)',
+      [admin.id, 'login', req.ip]
+    );
 
-  success(res, {
-    id: admin.id,
-    username: admin.username,
-    email: admin.email
+    success(res, {
+      id: admin.id,
+      username: admin.username,
+      email: admin.email
+    });
   });
 }));
 
@@ -95,25 +96,28 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
  * POST /api/auth/logout
  * 管理员登出
  */
-router.post('/logout', (req: Request, res: Response) => {
+router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
   const adminId = req.session.adminId;
 
   if (adminId) {
-    // 记录登出日志
     execute(
       'INSERT INTO operation_logs (admin_id, operation, ip_address) VALUES (?, ?, ?)',
       [adminId, 'logout', req.ip]
     );
   }
 
-  req.session.destroy((err) => {
-    if (err) {
-      error(res, ErrorCodes.SERVER_ERROR, '登出失败');
-      return;
-    }
-    success(res, null, '登出成功');
+  await new Promise<void>((resolve, reject) => {
+    req.session.destroy((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
-});
+
+  success(res, null, '登出成功');
+}));
 
 /**
  * GET /api/auth/session

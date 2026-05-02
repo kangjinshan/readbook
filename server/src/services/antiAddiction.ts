@@ -98,16 +98,31 @@ export class AntiAddictionService {
     excludeSessionId?: string,
     now: Date = new Date()
   ): number {
+    // 读取该孩子的最近重置时间，跳过重置之前的会话
+    const childRow = queryOne('SELECT daily_reading_reset_at FROM children WHERE id = ?', [childId]);
+    const resetAt = childRow?.daily_reading_reset_at ? parseStoredUtcDateTime(childRow.daily_reading_reset_at) : null;
+
+    // SQL 级过滤：只查询可能与窗口重叠的会话
+    const windowStartIso = windowStart.toISOString();
     const sessions = query(
       `SELECT id, start_time, end_time, duration_seconds
        FROM reading_sessions
-       WHERE child_id = ?`,
-      [childId]
+       WHERE child_id = ?
+         AND COALESCE(end_time, CURRENT_TIMESTAMP) >= ?`,
+      [childId, windowStartIso]
     );
 
     return sessions.reduce((sum, session) => {
       if (excludeSessionId && String(session.id) === excludeSessionId) {
         return sum;
+      }
+
+      // 跳过重置之前已结束的会话
+      if (resetAt && session.end_time) {
+        const sessionEnd = parseStoredUtcDateTime(session.end_time);
+        if (sessionEnd && sessionEnd <= resetAt) {
+          return sum;
+        }
       }
 
       const startTime = parseStoredUtcDateTime(session.start_time);
@@ -150,10 +165,7 @@ export class AntiAddictionService {
   }
 
   private getRollingWindowStart(policy: ControlPolicy, now: Date): Date {
-    const windowMinutes = Math.max(
-      policy.continuousLimitMinutes,
-      policy.continuousLimitMinutes + policy.restMinutes
-    );
+    const windowMinutes = policy.continuousLimitMinutes + policy.restMinutes;
     return new Date(now.getTime() - windowMinutes * 60 * 1000);
   }
 
@@ -286,7 +298,41 @@ export class AntiAddictionService {
       return {
         allowed: false,
         reason: 'daily_limit_exceeded',
-        message: `今日阅读时长已达${policy.dailyLimitMinutes}分钟上限`
+        message: `今日阅读时长已达${policy.dailyLimitMinutes}分钟上限`,
+        lockDurationMinutes: 0
+      };
+    }
+
+    // 检查连续阅读限制（滚动窗口）
+    const now = new Date();
+    const rollingWindowStart = this.getRollingWindowStart(policy, now);
+    const rollingSeconds = this.getRollingWindowReadingSeconds(
+      childId, rollingWindowStart, now, undefined, now
+    );
+    const continuousLimitSeconds = policy.continuousLimitMinutes * 60;
+    const rollingWindowMinutes = policy.continuousLimitMinutes + policy.restMinutes;
+
+    if (rollingSeconds >= continuousLimitSeconds) {
+      // 计算还需要休息多久：最近一次阅读结束时间 + restMinutes - now
+      const lastSession = queryOne(
+        `SELECT end_time FROM reading_sessions
+         WHERE child_id = ? AND end_time IS NOT NULL
+         ORDER BY end_time DESC LIMIT 1`,
+        [childId]
+      );
+      let remainingRestMinutes = policy.restMinutes;
+      if (lastSession?.end_time) {
+        const lastEnd = parseStoredUtcDateTime(lastSession.end_time);
+        if (lastEnd) {
+          const elapsed = Math.floor((now.getTime() - lastEnd.getTime()) / 60000);
+          remainingRestMinutes = Math.max(0, policy.restMinutes - elapsed);
+        }
+      }
+      return {
+        allowed: false,
+        reason: 'continuous_limit_exceeded',
+        message: `最近${rollingWindowMinutes}分钟内阅读已达${policy.continuousLimitMinutes}分钟，请休息${policy.restMinutes}分钟`,
+        lockDurationMinutes: remainingRestMinutes
       };
     }
 
@@ -337,10 +383,7 @@ export class AntiAddictionService {
       now
     );
     const continuousLimitSeconds = policy.continuousLimitMinutes * 60;
-    const rollingWindowMinutes = Math.max(
-      policy.continuousLimitMinutes,
-      policy.continuousLimitMinutes + policy.restMinutes
-    );
+    const rollingWindowMinutes = policy.continuousLimitMinutes + policy.restMinutes;
 
     // 检查禁止时段
     const forbiddenCheck = this.checkForbiddenTime(policy);
@@ -428,6 +471,10 @@ export class AntiAddictionService {
    * 获取今日阅读分钟数
    */
   getTodayReadingMinutes(childId: number, excludeSessionId?: string, now: Date = new Date()): number {
+    // 读取该孩子的最近重置时间，跳过重置之前的会话
+    const childRow = queryOne('SELECT daily_reading_reset_at FROM children WHERE id = ?', [childId]);
+    const resetAt = childRow?.daily_reading_reset_at ? parseStoredUtcDateTime(childRow.daily_reading_reset_at) : null;
+
     const todayRange = getBeijingDayUtcRange(now);
     const params: Array<number | string> = [childId, todayRange.date, todayRange.date];
     let sql = `SELECT id, start_time, end_time, duration_seconds
@@ -443,6 +490,14 @@ export class AntiAddictionService {
 
     const sessions = query(sql, params);
     const totalSeconds = sessions.reduce((sum, session) => {
+      // 跳过重置之前已结束的会话
+      if (resetAt && session.end_time) {
+        const sessionEnd = parseStoredUtcDateTime(session.end_time);
+        if (sessionEnd && sessionEnd <= resetAt) {
+          return sum;
+        }
+      }
+
       const startTime = parseStoredUtcDateTime(session.start_time);
       if (!startTime) {
         return sum;
@@ -472,8 +527,13 @@ export class AntiAddictionService {
   resetDailyReading(childId: number): void {
     const today = getBeijingDateString();
     const resetAt = new Date().toISOString();
+    // 将今日所有已结束的阅读会话标记为已重置，使 getTodayReadingMinutes 跳过它们
     execute(
-      'UPDATE daily_stats SET total_minutes = 0 WHERE child_id = ? AND stat_date = ?',
+      `UPDATE reading_sessions SET reset_at = ? WHERE child_id = ? AND end_time IS NOT NULL AND date(datetime(start_time, '+8 hours')) <= ? AND date(datetime(COALESCE(end_time, CURRENT_TIMESTAMP), '+8 hours')) >= ?`,
+      [resetAt, childId, today, today]
+    );
+    execute(
+      'UPDATE daily_stats SET total_minutes = 0, pages_read = 0, books_read = 0, sessions_count = 0 WHERE child_id = ? AND stat_date = ?',
       [childId, today]
     );
     execute(
@@ -498,6 +558,15 @@ export class AntiAddictionService {
 
     if (!startTime || !endTime) {
       return;
+    }
+
+    // 如果该会话在重置之前已结束，则不计入统计
+    const childRow = queryOne('SELECT daily_reading_reset_at FROM children WHERE id = ?', [childId]);
+    if (childRow?.daily_reading_reset_at) {
+      const resetAt = parseStoredUtcDateTime(childRow.daily_reading_reset_at);
+      if (resetAt && endTime <= resetAt) {
+        return;
+      }
     }
 
     const endDate = getBeijingDateString(endTime);
