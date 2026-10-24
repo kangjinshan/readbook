@@ -2,6 +2,12 @@
 
 # Retrofit
 -keepattributes Signature
+-keepattributes InnerClasses,EnclosingMethod
+# Retrofit 2.9 inspects suspend functions' Continuation<T> at runtime.
+# R8 full mode otherwise erases the generic signature of this interface.
+-keep interface kotlin.coroutines.Continuation { *; }
+-keep interface retrofit2.Call { *; }
+-keep class retrofit2.Response { *; }
 -keepattributes *Annotation*
 -keep class retrofit2.** { *; }
 -keepclasseswithmembers class * {

@@ -6,7 +6,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.readbook.tv.R
+import com.readbook.tv.data.api.ApiClient
 import com.readbook.tv.data.model.Book
 import com.readbook.tv.databinding.ItemBookBinding
 
@@ -68,9 +71,14 @@ class BookAdapter(
             binding.progressBar.max = 100
             binding.progressBar.progress = item.progressPercent
 
-            book.coverUrl?.let { url ->
+            coverResource(ApiClient.getBaseUrl(), book.coverUrl)?.let { cover ->
+                val token = ApiClient.getDeviceToken()?.takeIf { it.isNotBlank() }
+                val model = if (cover.authorized && token != null) {
+                    GlideUrl(cover.url, LazyHeaders.Builder()
+                        .addHeader("Authorization", "Bearer $token").build())
+                } else cover.url
                 Glide.with(binding.coverImage)
-                    .load(url)
+                    .load(model)
                     .placeholder(R.drawable.book_cover_placeholder)
                     .error(R.drawable.book_cover_placeholder)
                     .fitCenter()

@@ -1,0 +1,16 @@
+{
+  "version": "1.0.5",
+  "model": "gpt-image-2",
+  "provider": "Azure 0932",
+  "banner_size": [
+    1280,
+    720
+  ],
+  "title": "儿童阅读",
+  "subtitle": "ReadBook TV",
+  "assets_sha256": {
+    "tv_brand_icon.png": "5864f0073e5d3057476445b8ce18a696e89e680d62fb466c99ed6e255db0702d",
+    "tv_brand_banner.png": "1b3ae3a692690737478b99ff7e20767076971c788e19fa0fd21573a3ee2f50e5"
+  },
+  "prompt": "Create one professional Android TV app icon graphic. Square composition. A single bold, large, instantly recognizable emblem centered, occupying about 72 percent of the canvas. Refined soft 3D satin material, simple broad shapes, restrained highlights, extremely clean silhouette, legible from across a living room. Straight-on view with gentle depth. No surrounding rounded-square badge, no border, no device mockup, no tiny ornament, no neon, no labels or words, no watermark. Entire canvas has one perfectly flat solid-color background, edge to edge, without a floor or horizon; the emblem may cast a very soft shadow. Background deep forest green #183C32. Emblem: a welcoming open ivory book with a warm gold bookmark and gently curved thick pages, one small golden star floating just above it. Elegant warm library feeling. No stand, no enclosing frame, no lamp, no fine page text."
+}

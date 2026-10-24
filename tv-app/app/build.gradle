@@ -4,7 +4,7 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
-def readbookBaseUrl = project.findProperty("READBOOK_BASE_URL") ?: System.getenv("READBOOK_BASE_URL") ?: "http://localhost:8015/"
+def readbookBaseUrl = project.findProperty("READBOOK_BASE_URL") ?: System.getenv("READBOOK_BASE_URL") ?: "https://readbook.jinshanweb.com/"
 
 android {
     namespace 'com.readbook.tv'
@@ -14,8 +14,8 @@ android {
         applicationId "com.readbook.tv"
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 6
+        versionName "1.0.5"
         buildConfigField "String", "DEFAULT_BASE_URL", "\"${readbookBaseUrl}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -52,6 +52,8 @@ android {
 }
 
 dependencies {
+    // Tink references these compile-time annotations; provide them to the release shrinker.
+    compileOnly 'com.google.errorprone:error_prone_annotations:2.15.0'
     // Android TV
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.leanback:leanback-preference:1.0.0'
