@@ -6,6 +6,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReaderPageBreaksTest {
+    @Test
+    fun `keeps final word on the page when the entire paragraph fits`() {
+        val text = "Harry apple river slow retry"
+        assertEquals(text.length, ReaderPageBreaks.adjustBreakPoint(text, 0, text.length))
+    }
 
     @Test
     fun `pulls quote into previous page instead of moving previous text to next page`() {

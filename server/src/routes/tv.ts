@@ -12,8 +12,10 @@ import { parseBodyInt, parseRouteInt } from '../utils/validator';
 import { buildStorageCoverUrl, getRequestOrigin } from '../utils/bookCover';
 import { clampRecordedDurationSeconds, parseStoredUtcDateTime } from '../utils/dateUtils';
 import type { ChapterContentBlock } from '../services/bookParserRuntime';
+import wordLookupRoutes from './wordLookup';
 
 const router = Router();
+router.use(wordLookupRoutes);
 
 function buildParsedAssetUrl(origin: string, bookId: number, assetPath: string): string {
   const normalizedPath = assetPath

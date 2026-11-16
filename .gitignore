@@ -75,3 +75,8 @@ tmp/
 
 # Local git worktrees
 .worktrees/
+
+output/
+
+# Runtime reader scripts are source assets, not generated JavaScript
+!tv-app/app/src/main/assets/*.js

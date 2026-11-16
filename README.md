@@ -256,3 +256,9 @@ ssh <deploy-user>@<deploy-host> "pm2 stop <pm2-process-name> && cd <server-deplo
 - Web API 层已统一使用 `unwrapData` 替代非空断言，错误提示更清晰
 - Web 登出时已清空全部 Store 数据，防止下一个用户看到残留信息
 - Web 书籍预览已修复 XSS 风险（renderBaseUrl 转义处理）
+
+## 阅读查词（Android TV 1.1.4）
+
+支持鼠标左键和遥控器点词查中文释义、播放 wordlearning 英文发音。上下键逐行选词、左右键逐词；浮窗内方向键会收起浮窗并继续移动。释义优先返回，查看记录和候选词在后台保存，人名单独缓存。
+
+服务配置、缓存边界、旧版升级和验证说明见 [阅读查词](docs/word-lookup.md)。

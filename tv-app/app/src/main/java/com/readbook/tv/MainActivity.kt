@@ -13,6 +13,7 @@ import com.readbook.tv.ui.shelf.ShelfActivity
 import com.readbook.tv.util.AppBrightnessController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * 主 Activity - 启动页
@@ -42,6 +43,17 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             // 短暂延迟显示启动画面
             delay(1000)
+
+            // Re-register the same credential after a long absence. The server preserves
+            // an existing binding while refreshing last_online_at used by token expiry.
+            if (app.isBound()) {
+                app.preferenceManager.deviceToken?.let { token ->
+                    val registration = withTimeoutOrNull(5000L) {
+                        app.syncRepository.registerDevice(token).getOrNull()
+                    }
+                    if (registration?.bound == false) app.clearBinding()
+                }
+            }
 
             // 检查绑定状态
             val refreshedState = app.refreshReadingStateForToday()

@@ -9,6 +9,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -32,6 +33,7 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
 import com.readbook.tv.ReadBookApp
 import com.readbook.tv.data.api.ApiClient
+import com.readbook.tv.data.api.WordLookupRequest
 import com.readbook.tv.data.model.Bookmark
 import com.readbook.tv.data.model.Chapter
 import com.readbook.tv.data.model.ReaderContentBlocksJson
@@ -52,6 +54,12 @@ import com.readbook.tv.util.PreferenceManager
 import com.readbook.tv.util.RemoteControlHandler
 import com.readbook.tv.util.Theme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import org.json.JSONObject
+import java.util.UUID
+import java.io.File
+import android.util.Base64
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -71,6 +79,15 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     private lateinit var preferenceManager: PreferenceManager
     private lateinit var readingControlCoordinator: ReadingControlCoordinator
     private lateinit var remoteControlHandler: RemoteControlHandler
+    private val nativeWords = NativeWordSelector { showWordLookup(it) }
+    private var selectingWords = false
+    private var lookupJob: Job? = null
+    private var wordAudioJob: Job? = null
+    private var wordAudioPlayer: ReaderWordAudioPlayer? = null
+    private var lookupGeneration = 0
+    private var lookupRequest: WordLookupRequest? = null
+    private var lookupCanRetry = false
+    private val wordSelectionScript by lazy { assets.open("reader-word-selection.js").bufferedReader().use { it.readText() } }
 
     private var bookId: Long = 0
     private var totalPages: Int = 0
@@ -166,6 +183,23 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
 
     private inner class ReaderWebBridge {
         @JavascriptInterface
+        fun onWordSelected(json: String?) {
+            if (json == null || json.length > 2000) return
+            val selection = runCatching {
+                val value = JSONObject(json)
+                val word = value.getString("word")
+                val context = value.getString("context")
+                val start = value.getInt("selectionStart")
+                require(word.length <= 64 && ReaderWords.pattern.matches(word))
+                require(context.length <= 600 && start >= 0 && context.substring(start, start + word.length) == word)
+                ReaderWordSelection(word, context, start)
+            }.getOrNull() ?: return
+            runOnUiThread {
+                if (!isFinishing && activeRenderMode == ReaderRenderMode.XHTML) showWordLookup(selection)
+            }
+        }
+
+        @JavascriptInterface
         fun onLayoutReady(pageCount: String?) {
             val resolvedPageCount = pageCount?.toIntOrNull()?.coerceAtLeast(1) ?: 1
             runOnUiThread {
@@ -205,6 +239,8 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
         setupRemoteControl()
         setupChapterWebView()
         setupMenuButtons()
+        binding.wordLookupPanel.setOnClickListener { if (lookupCanRetry) lookupRequest?.let { performWordLookup(it) } }
+        binding.wordSelectionHint.setOnClickListener { startWordSelection() }
         loadBookmarks()
 
         lifecycleScope.launch {
@@ -228,6 +264,9 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     }
 
     override fun onDestroy() {
+        lookupJob?.cancel()
+        wordAudioJob?.cancel()
+        wordAudioPlayer?.close()
         if (hasLoadedProgressState) {
             runBlocking {
                 bookRepository.updateCurrentPage(bookId, currentPage)
@@ -246,7 +285,75 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
         ensureReadingAllowedOrExit()
     }
 
+    override fun onStop() {
+        wordAudioJob?.cancel()
+        wordAudioPlayer?.stop()
+        super.onStop()
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN && binding.wordLookupPanel.visibility == View.VISIBLE) {
+            val position = IntArray(2)
+            binding.wordLookupPanel.getLocationOnScreen(position)
+            if (event.rawX < position[0] || event.rawX >= position[0] + binding.wordLookupPanel.width ||
+                event.rawY < position[1] || event.rawY >= position[1] + binding.wordLookupPanel.height) {
+                dismissWordLookup()
+                // Pass this same click on to the underlying word, if there is one.
+            }
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (binding.wordLookupPanel.visibility == View.VISIBLE) {
+            if (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_MENU) {
+                if (event.action == KeyEvent.ACTION_UP) dismissWordLookup()
+                return true
+            }
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    if (event.action == KeyEvent.ACTION_DOWN) {
+                        dismissWordLookup()
+                        selectingWords = true
+                        showWordSelectionHint()
+                        moveWordSelection(
+                            if (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT || event.keyCode == KeyEvent.KEYCODE_DPAD_UP) -1 else 1,
+                            vertical = event.keyCode == KeyEvent.KEYCODE_DPAD_UP || event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN)
+                    }
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                    if (event.action == KeyEvent.ACTION_UP) {
+                        if (lookupCanRetry) lookupRequest?.let { performWordLookup(it) } else dismissWordLookup()
+                    }
+                    return true
+                }
+            }
+            return super.dispatchKeyEvent(event)
+        }
+        if (selectingWords) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP,
+                KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN -> {
+                    if (event.action == KeyEvent.ACTION_DOWN) moveWordSelection(
+                        if (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT || event.keyCode == KeyEvent.KEYCODE_DPAD_UP) -1 else 1,
+                        vertical = event.keyCode == KeyEvent.KEYCODE_DPAD_UP || event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN)
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                    if (event.action == KeyEvent.ACTION_UP) {
+                        if (activeRenderMode == ReaderRenderMode.NATIVE) nativeWords.confirm()
+                        else binding.chapterWebView.evaluateJavascript("window.__readbookWordConfirm && window.__readbookWordConfirm()", null)
+                    }
+                    return true
+                }
+                KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_MENU -> {
+                    if (event.action == KeyEvent.ACTION_UP) stopWordSelection()
+                    return true
+                }
+            }
+        }
         if (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT
             || event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
             || event.keyCode == KeyEvent.KEYCODE_DPAD_UP
@@ -281,6 +388,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (binding.wordLookupPanel.visibility == View.VISIBLE) return super.onKeyDown(keyCode, event)
         if (isMenuVisible) {
             return super.onKeyDown(keyCode, event)
         }
@@ -303,6 +411,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+        if (binding.wordLookupPanel.visibility == View.VISIBLE) return super.onKeyUp(keyCode, event)
         if (isMenuVisible) {
             return super.onKeyUp(keyCode, event)
         }
@@ -917,6 +1026,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
                   });
                 })();
               </script>
+              <script>$wordSelectionScript</script>
             </head>
             <body>
               <div id="page-stage">
@@ -1276,6 +1386,9 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     }
 
     private fun showNativeContent(content: ReaderPage) {
+        dismissWordLookup()
+        stopWordSelection()
+        nativeWords.clear()
         binding.contentText.visibility = View.GONE
         binding.pageContentStack.removeAllViews()
         val theme = preferenceManager.theme
@@ -1297,6 +1410,7 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
                         text = element.text
                     }
                     binding.pageContentStack.addView(textView)
+                    nativeWords.bind(textView, element.text)
                 }
                 is PageElement.Image -> {
                     val imageView = ImageView(this).apply {
@@ -1322,6 +1436,8 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
     }
 
     private fun showHtmlContent(pageIndex: Int) {
+        dismissWordLookup()
+        stopWordSelection()
         binding.nativeContentContainer.visibility = View.GONE
         binding.chapterWebView.visibility = View.VISIBLE
         binding.chapterWebView.evaluateJavascript(
@@ -1697,7 +1813,127 @@ class ReaderActivity : AppCompatActivity(), RemoteControlHandler.RemoteControlCa
         }
     }
 
-    override fun onConfirm(): Boolean = true
+    private fun startWordSelection() {
+        if (isMenuVisible) hideMenu()
+        selectingWords = true
+        showWordSelectionHint()
+        moveWordSelection(0)
+    }
+
+    private fun showWordSelectionHint() {
+        binding.wordSelectionHint.text = "上下换行 · 左右选词 · 确认查词 · 返回结束选词"
+        binding.wordSelectionHint.visibility = View.VISIBLE
+    }
+
+    private fun moveWordSelection(delta: Int, vertical: Boolean = false) {
+        if (activeRenderMode == ReaderRenderMode.NATIVE) {
+            if (!nativeWords.move(delta, vertical)) {
+                stopWordSelection()
+                Toast.makeText(this, "本页没有可选的英文单词", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            binding.chapterWebView.evaluateJavascript("window.__readbookWordMove && window.__readbookWordMove($delta, $vertical)") { result ->
+                if (result != "true" && selectingWords) {
+                    stopWordSelection()
+                    Toast.makeText(this, "本页没有可选的英文单词", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun stopWordSelection() {
+        selectingWords = false
+        nativeWords.clearHighlight()
+        binding.chapterWebView.evaluateJavascript("window.__readbookWordClear && window.__readbookWordClear()", null)
+        binding.wordSelectionHint.visibility = View.GONE
+    }
+
+    private fun showWordLookup(selection: ReaderWordSelection) {
+        if (!ensureReadingAllowedOrExit()) return
+        val request = WordLookupRequest(UUID.randomUUID().toString(), bookId, currentPage,
+            selection.word, selection.context, selection.selectionStart)
+        lookupRequest = request
+        performWordLookup(request)
+    }
+
+    private fun performWordLookup(request: WordLookupRequest) {
+        lookupJob?.cancel()
+        wordAudioJob?.cancel()
+        wordAudioPlayer?.stop()
+        val generation = ++lookupGeneration
+        binding.wordLookupPanel.visibility = View.VISIBLE
+        binding.lookupWord.text = request.word
+        binding.lookupMeaning.text = "正在查询中文释义…"
+        lookupCanRetry = false
+        binding.lookupScroll.scrollTo(0, 0)
+        binding.wordLookupPanel.requestFocus()
+        playWordAudio(request, generation)
+        lookupJob = lifecycleScope.launch {
+            try {
+                val result = bookRepository.lookupWord(request)
+                if (generation != lookupGeneration) return@launch
+                binding.lookupWord.text = if (result.lemma != null && !result.lemma.equals(request.word, true))
+                    "${request.word}  ·  ${result.lemma}" else request.word
+                binding.lookupMeaning.text = listOf(result.meaning, result.details.orEmpty())
+                    .filter { it.isNotBlank() }.distinct().joinToString("\n\n")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (generation != lookupGeneration) return@launch
+                binding.lookupMeaning.text = "暂时无法查询\n点击或按确认键重试"
+                lookupCanRetry = true
+            }
+        }
+    }
+
+    private fun dismissWordLookup() {
+        val started = SystemClock.uptimeMillis()
+        ++lookupGeneration
+        binding.wordLookupPanel.visibility = View.GONE
+        lookupJob?.cancel()
+        wordAudioJob?.cancel()
+        wordAudioPlayer?.stop()
+        lookupRequest = null
+        binding.root.requestFocus()
+        if (com.readbook.tv.BuildConfig.DEBUG) Log.i("ReaderInputTiming", "popup dismissed elapsed=${SystemClock.uptimeMillis() - started}")
+    }
+
+    private fun playWordAudio(request: WordLookupRequest, generation: Int) {
+        wordAudioJob = lifecycleScope.launch {
+            var pendingFile: File? = null
+            try {
+                val data = bookRepository.getWordAudio(request.bookId, request.word)
+                val file = withContext(Dispatchers.IO) {
+                    require(data.audio.length <= 1_400_000)
+                    val bytes = Base64.decode(data.audio, Base64.DEFAULT)
+                    require(ReaderAudioValidation.matches(request.word, data, bytes))
+                    File.createTempFile("reader-word-", ".mp3", cacheDir).also {
+                        pendingFile = it
+                        it.writeBytes(bytes)
+                    }
+                }
+                if (generation != lookupGeneration || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@launch
+                val player = wordAudioPlayer ?: ReaderWordAudioPlayer(this@ReaderActivity) {
+                    Toast.makeText(this@ReaderActivity, "英文发音暂不可用", Toast.LENGTH_SHORT).show()
+                }.also { wordAudioPlayer = it }
+                player.play(file)
+                pendingFile = null
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (generation == lookupGeneration && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    Toast.makeText(this@ReaderActivity, "英文发音暂不可用", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                pendingFile?.delete()
+            }
+        }
+    }
+
+    override fun onConfirm(): Boolean {
+        startWordSelection()
+        return true
+    }
 
     override fun onLongPress(): Boolean {
         addBookmark()

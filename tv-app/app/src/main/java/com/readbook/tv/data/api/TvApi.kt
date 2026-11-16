@@ -9,6 +9,12 @@ import retrofit2.http.*
  */
 interface TvApi {
 
+    @POST("api/tv/word-lookup")
+    suspend fun lookupWord(@Body request: WordLookupRequest): ApiResponse<WordLookupData>
+
+    @POST("api/tv/word-audio")
+    suspend fun getWordAudio(@Body request: WordAudioRequest): ApiResponse<WordAudioData>
+
     /**
      * 设备注册
      */
@@ -97,6 +103,17 @@ interface TvApi {
 }
 
 // Request classes
+
+data class WordLookupRequest(
+    val requestId: String,
+    val bookId: Long,
+    val pageNumber: Int,
+    val word: String,
+    val context: String,
+    val selectionStart: Int
+)
+
+data class WordAudioRequest(val bookId: Long, val word: String)
 
 data class RegisterRequest(
     @SerializedName("deviceToken")

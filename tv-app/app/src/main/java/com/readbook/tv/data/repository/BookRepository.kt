@@ -21,6 +21,18 @@ class BookRepository(
     private val bookmarkDao: BookmarkDao,
     private val api: TvApi
 ) {
+    suspend fun lookupWord(request: WordLookupRequest): WordLookupData {
+        val response = api.lookupWord(request)
+        if (!response.isSuccess()) throw java.io.IOException(response.getErrorMessage())
+        return response.data ?: throw java.io.IOException("查词结果为空")
+    }
+
+    suspend fun getWordAudio(bookId: Long, word: String): WordAudioData {
+        val response = api.getWordAudio(WordAudioRequest(bookId, word))
+        if (!response.isSuccess()) throw java.io.IOException(response.getErrorMessage())
+        return response.data ?: throw java.io.IOException("发音结果为空")
+    }
+
     private fun parseServerTimestamp(value: String?): Long {
         return value?.let {
             runCatching { java.time.Instant.parse(it).toEpochMilli() }.getOrNull()

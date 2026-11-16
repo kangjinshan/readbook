@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.Flow
         Bookmark::class,
         ReadingProgress::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,6 +42,16 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("ALTER TABLE chapters ADD COLUMN renderBaseUrl TEXT")
         db.execSQL("ALTER TABLE chapters ADD COLUMN renderHtml TEXT")
         db.execSQL("ALTER TABLE chapters ADD COLUMN renderCssJson TEXT")
+    }
+}
+
+// Early installations predate the @Index declarations, even though their columns match.
+// Upgrade in place: no chapter, bookmark or reading-progress rows are removed.
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_chapters_bookId ON chapters(bookId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_bookmarks_bookId_pageNumber ON bookmarks(bookId, pageNumber)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_reading_progress_bookId ON reading_progress(bookId)")
     }
 }
 

@@ -25,6 +25,8 @@ object ReaderPageBreaks {
         }
 
         val boundedEnd = fittedEnd.coerceIn(start + 1, text.length)
+        // No following page exists when the complete remainder already fits.
+        if (boundedEnd == text.length) return boundedEnd
         val preferred = findPreferredBreak(text, start, boundedEnd, searchWindow)
         return pullLeadingCharsIntoCurrentPage(text, preferred, boundedEnd)
     }

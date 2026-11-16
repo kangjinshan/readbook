@@ -2,6 +2,20 @@ package com.readbook.tv.data.api
 
 import com.google.gson.annotations.SerializedName
 
+data class WordAudioData(val word: String, val audio: String, val mimeType: String, val audioSha256: String)
+
+data class WordLookupData(
+    val word: String,
+    val lemma: String? = null,
+    val meaning: String,
+    val details: String? = null,
+    val source: String? = null,
+    val sourceUrl: String? = null,
+    val isPersonName: Boolean = false,
+    val recorded: Boolean = false,
+    val candidateStatus: String? = null
+)
+
 /**
  * API 通用响应包装
  */

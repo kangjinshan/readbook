@@ -8,6 +8,11 @@ export const config = {
   port: process.env.PORT || 8015,
   host: process.env.HOST || '0.0.0.0',
 
+  wordlearning: {
+    apiUrl: process.env.WORDLEARNING_API_URL || '',
+    integrationKey: process.env.WORDLEARNING_INTEGRATION_KEY || ''
+  },
+
   // Session 配置
   session: {
     secret: process.env.SESSION_SECRET || (isProduction ? '' : 'readbook-dev-session-secret'),

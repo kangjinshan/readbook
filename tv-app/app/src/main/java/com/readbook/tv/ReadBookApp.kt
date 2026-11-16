@@ -7,6 +7,7 @@ import com.readbook.tv.data.api.ApiClient
 import com.readbook.tv.data.local.AppDatabase
 import com.readbook.tv.data.local.MIGRATION_1_2
 import com.readbook.tv.data.local.MIGRATION_2_3
+import com.readbook.tv.data.local.MIGRATION_3_4
 import com.readbook.tv.data.repository.BookRepository
 import com.readbook.tv.data.repository.SyncRepository
 import com.readbook.tv.service.BeijingTimeProvider
@@ -78,7 +79,7 @@ class ReadBookApp : Application() {
             AppDatabase::class.java,
             "readbook.db"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
 
         // 初始化仓库
